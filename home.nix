@@ -39,6 +39,8 @@
     fira-code-nerdfont
     # conda
     bun
+    nodejs_18
+    cargo
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
