@@ -41,6 +41,7 @@
     bun
     nodejs_18
     cargo
+    mob
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
