@@ -40,7 +40,7 @@
     # conda
     bun
     nodejs_18
-    cargo
+    rustup
     mob
   ];
 
@@ -82,10 +82,10 @@
   programs.home-manager.enable = true;
 
   programs.zsh.enable = true;
+  programs.zsh.enableAutosuggestions = true;
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
 
   programs.starship.enable = true;
-  programs.zsh.enableAutosuggestions = true;
   fonts.fontconfig.enable = true;
 }
