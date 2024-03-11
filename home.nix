@@ -43,7 +43,9 @@
     go
     zig
     fnm
-    git 
+    git
+    git-lfs
+    wget
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
