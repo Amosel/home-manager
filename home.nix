@@ -85,8 +85,9 @@
     # Let Home Manager install and manage itself.
     # add incase cargo binary directories are not injected (could have been fixed.)
     CARGO_HOME = "${config.home.homeDirectory}/.cargo";
+    CARGO_BIN = "${config.home.homeDirectory}/.cargo/bin";
     FOUNDRY_BIN = "${config.home.homeDirectory}/.foundry/bin";
-    PATH = "/usr/local/bin:$CARGO_HOME:$FOUNDRY_BIN:$PATH";
+    PATH = "/usr/local/bin:$CARGO_HOME:$CARGO_BIN:$FOUNDRY_BIN:$PATH";
   };
 
   programs.home-manager.enable = true;
