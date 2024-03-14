@@ -80,8 +80,6 @@
   #
 
   home.sessionVariables = {
-    # export CARGO_HOME="$HOME/.cargo/"
-    # export PATH="$CARGO_HOME/bin:$PATH"
     # Let Home Manager install and manage itself.
     # add incase cargo binary directories are not injected (could have been fixed.)
     CARGO_HOME = "${config.home.homeDirectory}/.cargo";
