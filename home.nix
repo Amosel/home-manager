@@ -112,12 +112,6 @@
       HEAD="curl -I";
       # Search through your command history and print the top 10 commands
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
-
-      code="/usr/local/bin/code";
-      ollama="/usr/local/bin/ollama";
-      # zed="/usr/local/bin/zed";
-      # cursor="/usr/local/bin/cursor";
-      # foundry="$HOME/.foundry/bin"
     };
     initExtra = ''
       eval "$(fnm env)"
