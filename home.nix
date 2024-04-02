@@ -46,6 +46,7 @@
     git
     git-lfs
     wget
+    android-tools
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -85,7 +86,9 @@
     CARGO_HOME = "${config.home.homeDirectory}/.cargo";
     CARGO_BIN = "${config.home.homeDirectory}/.cargo/bin";
     FOUNDRY_BIN = "${config.home.homeDirectory}/.foundry/bin";
-    PATH = "/usr/local/bin:$CARGO_HOME:$CARGO_BIN:$FOUNDRY_BIN:$PATH";
+    JAVA_HOME = "/Applications/Android\ Studio.app/Contents/jbr/Contents/Home";
+    ANDROID_HOME = "${config.home.homeDirectory}/Library/Android/sdk";
+    PATH = "/usr/local/bin:$CARGO_HOME:$CARGO_BIN:$FOUNDRY_BIN:$JAVA_HOME:$JAVA_HOME/bin:$ANDROID_HOME:$PATH";
   };
 
   programs.home-manager.enable = true;
