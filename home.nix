@@ -117,7 +117,7 @@
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
     };
     initExtra = ''
-      eval "$(fnm env)"
+      eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
       eval "$(/opt/homebrew/bin/brew shellenv)"
       setopt INC_APPEND_HISTORY
     '';
