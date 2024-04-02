@@ -158,7 +158,7 @@
     extraConfig = {
       alias = {
         b = "branch";
-        bb = "for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'";
+        bb = "for-each-ref --sort='-committerdate' --format='%(color:bold blue)%(refname:short)%(color:reset) - %(color:bold green)%(committerdate:relative)%(color:reset) - %(color:bold red)%(authorname)%(color:reset) (%(color:bold yellow)%(subject)%(color:reset))' refs/heads/";
         s = "status";
         a = "!git add . && git status";
         au = "!git add -u . && git status";
