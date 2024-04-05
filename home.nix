@@ -176,6 +176,25 @@
       core = {
         excludesfile = "/Users/amoselmaliah/.gitignore_global";
       };
+      difftool = {
+        Kaleidoscope = {
+          cmd = "ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"";
+        };
+        prompt = "false";
+      };
+      diff = {
+        tool = "Kaleidoscope";
+      };
+      mergetool = {
+        Kaleidoscope = {
+          cmd = "ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot";
+          trustExitCode = "true";
+        };
+        prompt = "false";
+      };
+      merge = {
+        tool = "Kaleidoscope";
+      };
       filter = {
         media = {
           required = "true";
