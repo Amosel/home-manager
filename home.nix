@@ -157,6 +157,9 @@
     userName = "Amos Elmaliah";
     userEmail = "amosel@gmail.com";
     extraConfig = {
+      init = {
+        defaultBranch = "main";
+      };
       alias = {
         b = "branch";
         bb = "for-each-ref --sort='-committerdate' --format='%(color:bold blue)%(refname:short)%(color:reset) - %(color:bold green)%(committerdate:relative)%(color:reset) - %(color:bold red)%(authorname)%(color:reset) (%(color:bold yellow)%(subject)%(color:reset))' refs/heads/";
