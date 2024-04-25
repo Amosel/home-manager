@@ -48,6 +48,7 @@
     wget
     android-tools
     swift-format
+    gitui
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
