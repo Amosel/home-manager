@@ -37,7 +37,6 @@
     fira-code-nerdfont
     yt-dlp
     ffmpeg_5-full
-    bun 
     rustup
     mob
     go
@@ -86,6 +85,7 @@
     JAVA_HOME = builtins.toPath "/Applications/Android Studio.app/Contents/jbr/Contents/Home";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
+      "${config.home.homeDirectory}/.bun/bin"
       "${config.home.homeDirectory}/.cargo/bin"
       "${config.home.homeDirectory}/.foundry/bin"
       "${config.home.sessionVariables.JAVA_HOME}"
