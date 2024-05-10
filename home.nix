@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -83,14 +83,16 @@
   #
 
   home.sessionVariables = {
-    # Let Home Manager install and manage itself.
-    # add incase cargo binary directories are not injected (could have been fixed.)
-    CARGO_HOME = "${config.home.homeDirectory}/.cargo";
-    CARGO_BIN = "${config.home.homeDirectory}/.cargo/bin";
-    FOUNDRY_BIN = "${config.home.homeDirectory}/.foundry/bin";
-    JAVA_HOME = "\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\"";
-    ANDROID_HOME = "${config.home.homeDirectory}/Library/Android/sdk";
-    PATH = "/usr/local/bin:$CARGO_HOME:$CARGO_BIN:$FOUNDRY_BIN:$JAVA_HOME:$JAVA_HOME/bin:$ANDROID_HOME:$PATH";
+    JAVA_HOME = builtins.toPath "/Applications/Android Studio.app/Contents/jbr/Contents/Home";
+    PATH = lib.concatStringsSep ":" [
+      "/usr/local/bin"
+      "${config.home.homeDirectory}/.cargo/bin"
+      "${config.home.homeDirectory}/.foundry/bin"
+      "${config.home.sessionVariables.JAVA_HOME}"
+      "${config.home.sessionVariables.JAVA_HOME}/bin"
+      "${config.home.homeDirectory}/Library/Android/sdk"
+      "$PATH"
+    ];
   };
 
   programs.home-manager.enable = true;
