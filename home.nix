@@ -84,6 +84,7 @@
 
   home.sessionVariables = {
     JAVA_HOME = builtins.toPath "/Applications/Android Studio.app/Contents/jbr/Contents/Home";
+    ANDROID_HOME = builtins.toPath "${config.home.homeDirectory}/Library/Android/sdk";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
@@ -92,6 +93,9 @@
       "${config.home.sessionVariables.JAVA_HOME}"
       "${config.home.sessionVariables.JAVA_HOME}/bin"
       "${config.home.homeDirectory}/Library/Android/sdk"
+      "${config.home.sessionVariables.ANDROID_HOME}"
+      "${config.home.sessionVariables.ANDROID_HOME}/tools"
+      "${config.home.sessionVariables.ANDROID_HOME}/platform-tools"
       "$PATH"
     ];
   };
