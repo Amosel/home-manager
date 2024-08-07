@@ -102,6 +102,7 @@
       "${config.home.sessionVariables.GOPATH}/bin"
       "$PATH"
     ];
+    EDITOR = "cursor";
   };
 
   programs.home-manager.enable = true;
