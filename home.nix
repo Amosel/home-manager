@@ -88,6 +88,10 @@
     JAVA_HOME = builtins.toPath "/Applications/Android Studio.app/Contents/jbr/Contents/Home";
     ANDROID_HOME = builtins.toPath "${config.home.homeDirectory}/Library/Android/sdk";
     GOPATH = builtins.toPath "${config.home.homeDirectory}/go";
+    # barretenberg
+    BB_HOME = "${config.home.homeDirectory}/.bb";
+    NARGO_HOME = "${config.home.homeDirectory}/.nargo";
+    NARGO_BIN_DIR = "${config.home.homeDirectory}/.nargo/bin";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
@@ -100,6 +104,8 @@
       "${config.home.sessionVariables.ANDROID_HOME}/tools"
       "${config.home.sessionVariables.ANDROID_HOME}/platform-tools"
       "${config.home.sessionVariables.GOPATH}/bin"
+      "${config.home.sessionVariables.BB_HOME}"
+      "${config.home.sessionVariables.NARGO_BIN_DIR}"
       "$PATH"
     ];
     EDITOR = "cursor";
