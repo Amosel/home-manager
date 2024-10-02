@@ -51,6 +51,7 @@
     lazygit
     watch
     jq
+    fzf
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -128,7 +129,7 @@
       # number for each match:
       grep="grep -n --color";
       # mkdir: create parent directories
-      mkdir="mkdir -pv"; 
+      mkdir="mkdir -pv";
       # ping: stop after 5 pings
       ping="ping -c 5";
       # curl: only display HTTP header
