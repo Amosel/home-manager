@@ -93,6 +93,7 @@
     BB_HOME = "${config.home.homeDirectory}/.bb";
     NARGO_HOME = "${config.home.homeDirectory}/.nargo";
     NARGO_BIN_DIR = "${config.home.homeDirectory}/.nargo/bin";
+    DENO_INSTALL = "${config.home.homeDirectory}/.deno";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
@@ -107,6 +108,7 @@
       "${config.home.sessionVariables.GOPATH}/bin"
       "${config.home.sessionVariables.BB_HOME}"
       "${config.home.sessionVariables.NARGO_BIN_DIR}"
+      "${config.home.sessionVariables.DENO_INSTALL}/bin"
       "$PATH"
     ];
     EDITOR = "cursor";
