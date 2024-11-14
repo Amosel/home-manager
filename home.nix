@@ -35,18 +35,18 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
     fira-code-nerdfont
-    yt-dlp
-    ffmpeg_5-full
+    # yt-dlp
+    # ffmpeg_6-full
     rustup
     mob
-    go
-    zig
+    # go
+    # zig
     fnm
     git
     git-lfs
-    wget
-    android-tools
-    swift-format
+    # wget
+    # android-tools
+    # swift-format
     gitui
     lazygit
     watch
