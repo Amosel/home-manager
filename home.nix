@@ -37,15 +37,16 @@
     fira-code-nerdfont
     yt-dlp
     ffmpeg_6-full
-    rustup
     mob
-    zig
+    rustup
+    # go
+    # zig
     fnm
     git
     git-lfs
-    wget
-    android-tools
-    swift-format
+    # wget
+    # android-tools
+    # swift-format
     gitui
     lazygit
     watch
@@ -188,6 +189,7 @@
         b = "branch";
         bb = "for-each-ref --sort='-committerdate' --format='%(color:bold blue)%(refname:short)%(color:reset) - %(color:bold green)%(committerdate:relative)%(color:reset) - %(color:bold red)%(authorname)%(color:reset) (%(color:bold yellow)%(subject)%(color:reset))' refs/heads/";
         s = "status";
+        div = "!git log --left-right --graph --cherry-pick --oneline HEAD...origin/$(git rev-parse --abbrev-ref HEAD)";
         a = "!git add . && git status";
         au = "!git add -u . && git status";
         aa = "!git add . && git add -u . && git status";
