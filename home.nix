@@ -37,7 +37,6 @@
     fira-code-nerdfont
     yt-dlp
     ffmpeg_6-full
-    # rustup
     mob
     # go
     # zig
@@ -52,6 +51,7 @@
     watch
     jq
     fzf
+    nixd
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -110,6 +110,8 @@
       "${config.home.sessionVariables.BB_HOME}"
       "${config.home.sessionVariables.NARGO_BIN_DIR}"
       "${config.home.sessionVariables.DENO_INSTALL}/bin"
+      "${config.home.sessionVariables.MODULAR_HOME}"
+      "${config.home.sessionVariables.MODULAR_HOME}/bin"
       "$PATH"
     ];
     EDITOR = "cursor";
@@ -118,7 +120,7 @@
   programs.home-manager.enable = true;
   programs.zsh = {
     enable = true;
-    enableAutosuggestions = true;
+    # enableAutosuggestions = true;
     history = {
       size = 10000;
       save = 10000;
