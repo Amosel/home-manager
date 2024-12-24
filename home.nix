@@ -94,6 +94,7 @@
     NARGO_HOME = "${config.home.homeDirectory}/.nargo";
     NARGO_BIN_DIR = "${config.home.homeDirectory}/.nargo/bin";
     DENO_INSTALL = "${config.home.homeDirectory}/.deno";
+    OLLAMA_MODELS = "${config.home.homeDirectory}/models";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
