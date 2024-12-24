@@ -35,9 +35,9 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
     fira-code-nerdfont
-    # yt-dlp
-    # ffmpeg_6-full
-    rustup
+    yt-dlp
+    ffmpeg_6-full
+    # rustup
     mob
     # go
     # zig
