@@ -113,6 +113,8 @@
       "${config.home.sessionVariables.DENO_INSTALL}/bin"
       "${config.home.sessionVariables.MODULAR_HOME}"
       "${config.home.sessionVariables.MODULAR_HOME}/bin"
+      "${config.home.homeDirectory}/flutter/bin"
+      "${config.home.homeDirectory}/.pub-cache/bin"
       "$PATH"
     ];
     EDITOR = "cursor";
