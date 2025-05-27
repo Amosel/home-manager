@@ -15,6 +15,9 @@
   # release notes.
   home.stateVersion = "23.11"; # Please read the comment before changing.
 
+  # Disable version mismatch warning between Home Manager and Nixpkgs
+  home.enableNixpkgsReleaseCheck = false;
+
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
@@ -34,7 +37,7 @@
     # (pkgs.writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
     # '')
-    fira-code-nerdfont
+    nerd-fonts.fira-code
     yt-dlp
     ffmpeg_6-full
     mob
@@ -52,6 +55,7 @@
     jq
     fzf
     nixd
+    sops
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -145,7 +149,7 @@
       # Search through your command history and print the top 10 commands
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
     };
-    initExtra = ''
+    initContent = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
       eval "$(/opt/homebrew/bin/brew shellenv)"
       setopt INC_APPEND_HISTORY
