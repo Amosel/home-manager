@@ -15,9 +15,6 @@
   # release notes.
   home.stateVersion = "23.11"; # Please read the comment before changing.
 
-  # Disable version mismatch warning between Home Manager and Nixpkgs
-  home.enableNixpkgsReleaseCheck = false;
-
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
@@ -37,10 +34,15 @@
     # (pkgs.writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
     # '')
-    nerd-fonts.fira-code
+    fira-code-nerdfont
     yt-dlp
     ffmpeg_6-full
+<<<<<<< HEAD
+    # rustup
+=======
+>>>>>>> origin/main
     mob
+    rustup
     # go
     # zig
     fnm
@@ -55,14 +57,6 @@
     jq
     fzf
     nixd
-    sops
-    k9s
-    pipx
-    httpie
-    gawk        # GNU awk
-    findutils   # GNU find
-    gnused      # GNU sed
-    protobuf    # Protocol Buffers
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -105,8 +99,11 @@
     NARGO_HOME = "${config.home.homeDirectory}/.nargo";
     NARGO_BIN_DIR = "${config.home.homeDirectory}/.nargo/bin";
     DENO_INSTALL = "${config.home.homeDirectory}/.deno";
+<<<<<<< HEAD
     OLLAMA_MODELS = "${config.home.homeDirectory}/models";
+=======
     MODULAR_HOME = "${config.home.homeDirectory}/.modular";
+>>>>>>> origin/main
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
@@ -124,13 +121,10 @@
       "${config.home.sessionVariables.DENO_INSTALL}/bin"
       "${config.home.sessionVariables.MODULAR_HOME}"
       "${config.home.sessionVariables.MODULAR_HOME}/bin"
-      "${config.home.homeDirectory}/flutter/bin"
-      "${config.home.homeDirectory}/.pub-cache/bin"
       "$PATH"
     ];
     EDITOR = "cursor";
   };
-
   programs.home-manager.enable = true;
   programs.zsh = {
     enable = true;
