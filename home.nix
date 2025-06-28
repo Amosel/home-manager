@@ -63,6 +63,15 @@
     findutils   # GNU find
     gnused      # GNU sed
     protobuf    # Protocol Buffers
+    
+    # Language servers and tools for LazyVim
+    lua-language-server
+    stylua
+    ripgrep
+    fd
+    # Optional: additional tools that work well with LazyVim
+    tree-sitter
+    nodejs  # Required for many LSPs and plugins
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
