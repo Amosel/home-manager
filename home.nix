@@ -62,9 +62,7 @@
     gawk        # GNU awk
     findutils   # GNU find
     gnused      # GNU sed
-    protobuf    # Protocol Buffers
-    
-    # Language servers and tools for LazyVim
+    protobuf    # Protocol Buffers    # Language servers and tools for LazyVim
     lua-language-server
     stylua
     ripgrep
@@ -116,6 +114,9 @@
     DENO_INSTALL = "${config.home.homeDirectory}/.deno";
     OLLAMA_MODELS = "${config.home.homeDirectory}/models";
     MODULAR_HOME = "${config.home.homeDirectory}/.modular";
+    # DAML SDK and Canton paths
+    DAML_SDK_HOME = "${config.home.homeDirectory}/.daml";
+    CANTON_HOME = "/opt/canton";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
       "${config.home.homeDirectory}/.bun/bin"
@@ -135,9 +136,11 @@
       "${config.home.sessionVariables.MODULAR_HOME}/bin"
       "${config.home.homeDirectory}/flutter/bin"
       "${config.home.homeDirectory}/.pub-cache/bin"
+      "${config.home.sessionVariables.DAML_SDK_HOME}/bin"
+      "${config.home.sessionVariables.CANTON_HOME}/bin"
       "$PATH"
     ];
-    EDITOR = "cursor";
+    EDITOR = "nvim";
   };
 
   programs.home-manager.enable = true;
@@ -164,6 +167,8 @@
       HEAD="curl -I";
       # Search through your command history and print the top 10 commands
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
+      # DAML SDK alias
+      daml="~/.daml/bin/daml";
     };
     initExtra = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
@@ -186,6 +191,15 @@
 
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
+
+  # Neovim configuration
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
+    vimdiffAlias = true;
+  };
 
   programs.starship = {
     enable = true;
