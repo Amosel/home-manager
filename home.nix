@@ -53,6 +53,9 @@
     lazygit
     watch
     jq
+    yq-go
+    helmfile
+    kubernetes-helm
     fzf
     nixd
     sops
@@ -62,7 +65,9 @@
     gawk        # GNU awk
     findutils   # GNU find
     gnused      # GNU sed
-    protobuf    # Protocol Buffers    # Language servers and tools for LazyVim
+    protobuf    # Protocol Buffers
+    protols     # Protocol Buffers language server
+    buf         # Modern Protocol Buffers toolchain
     lua-language-server
     stylua
     ripgrep
