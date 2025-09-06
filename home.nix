@@ -174,6 +174,8 @@
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
       # DAML SDK alias
       daml="~/.daml/bin/daml";
+      # Use GNU sed instead of BSD sed
+      sed="gsed";
     };
     initExtra = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
@@ -183,6 +185,10 @@
   };
   programs.bash = {
     enable = true;
+    shellAliases = {
+      # Use GNU sed instead of BSD sed
+      sed="gsed";
+    };
     initExtra = ''
       shopt -s histappend
       export HISTSIZE=10000
