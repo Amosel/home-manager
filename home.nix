@@ -90,7 +90,7 @@
     java-language-server          # Java
     kotlin-language-server        # Kotlin
     bash-language-server          # Bash/Shell
-    dockerfile-language-server    # Docker
+    # dockerfile-language-server    # Docker (package not available)
     cmake-language-server         # CMake
     
     # Formatting and Linting
@@ -199,8 +199,8 @@
       history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
       # DAML SDK alias
       daml="~/.daml/bin/daml";
-      # Use GNU sed instead of BSD sed
-      sed="gsed";
+      # Use GNU sed instead of BSD sed (from Nix)
+      sed="~/.nix-profile/bin/sed";
     };
     initExtra = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
@@ -211,8 +211,8 @@
   programs.bash = {
     enable = true;
     shellAliases = {
-      # Use GNU sed instead of BSD sed
-      sed="gsed";
+      # Use GNU sed instead of BSD sed (from Nix)
+      sed="~/.nix-profile/bin/sed";
     };
     initExtra = ''
       shopt -s histappend
