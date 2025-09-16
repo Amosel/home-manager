@@ -61,6 +61,7 @@
     sops
     k9s
     pipx
+    uv
     httpie
     gawk        # GNU awk
     findutils   # GNU find
@@ -68,8 +69,32 @@
     protobuf    # Protocol Buffers
     protols     # Protocol Buffers language server
     buf         # Modern Protocol Buffers toolchain
+    # Language Servers (LSPs)
     lua-language-server
-    stylua
+    
+    # Web Development LSPs
+    typescript-language-server      # TypeScript/JavaScript
+    nodePackages.vscode-langservers-extracted  # HTML, CSS, JSON, ESLint
+    nodePackages.yaml-language-server          # YAML
+    tailwindcss-language-server    # TailwindCSS
+    
+    # Systems Programming LSPs
+    rust-analyzer                  # Rust
+    gopls                         # Go
+    
+    # Python LSPs
+    pyright                       # Python (Microsoft's type checker)
+    # basedpyright                # Alternative Python LSP (uncomment if preferred)
+    
+    # Other Language LSPs
+    java-language-server          # Java
+    kotlin-language-server        # Kotlin
+    bash-language-server          # Bash/Shell
+    dockerfile-language-server    # Docker
+    cmake-language-server         # CMake
+    
+    # Formatting and Linting
+    stylua                        # Lua formatter
     ripgrep
     fd
     # Optional: additional tools that work well with LazyVim
