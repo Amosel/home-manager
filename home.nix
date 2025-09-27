@@ -100,6 +100,11 @@
     # Optional: additional tools that work well with LazyVim
     tree-sitter
     nodejs  # Required for many LSPs and plugins
+    
+    # Create protobuf-language-server wrapper for Zed compatibility
+    (pkgs.writeShellScriptBin "protobuf-language-server" ''
+      exec ${pkgs.protols}/bin/protols "$@"
+    '')
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
