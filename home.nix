@@ -51,6 +51,7 @@
     # swift-format
     gitui
     lazygit
+    lazydocker
     watch
     jq
     yq-go
