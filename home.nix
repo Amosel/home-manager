@@ -155,6 +155,7 @@
     CANTON_HOME = "/opt/canton";
     PATH = lib.concatStringsSep ":" [
       "/usr/local/bin"
+      "${config.home.homeDirectory}/.opencode/bin"
       "${config.home.homeDirectory}/.bun/bin"
       "${config.home.homeDirectory}/.cargo/bin"
       "${config.home.homeDirectory}/.foundry/bin"
