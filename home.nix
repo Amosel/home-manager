@@ -1,6 +1,10 @@
 { config, lib, pkgs, ... }:
 
 {
+  # Allow unfree packages
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "claude-code"
+  ];
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "amoselmaliah";
@@ -98,6 +102,9 @@
     stylua                        # Lua formatter
     ripgrep
     fd
+    # AI-powered development tools
+    claude-code                   # Agentic coding tool for terminal
+    
     # Optional: additional tools that work well with LazyVim
     tree-sitter
     nodejs  # Required for many LSPs and plugins
