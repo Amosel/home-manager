@@ -183,6 +183,7 @@
   programs.home-manager.enable = true;
   programs.zsh = {
     enable = true;
+    defaultKeymap = "emacs";
     # enableAutosuggestions = true;
     history = {
       size = 10000;
@@ -213,6 +214,11 @@
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
       eval "$(/opt/homebrew/bin/brew shellenv)"
       setopt INC_APPEND_HISTORY
+    '';
+    # Hook that runs after all other zsh initialization
+    loginExtra = ''
+      # Force emacs mode (normal shell editing) instead of vi mode
+      bindkey -e
     '';
   };
   programs.bash = {
