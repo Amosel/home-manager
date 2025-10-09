@@ -72,7 +72,7 @@
     buf         # Modern Protocol Buffers toolchain
     # Language Servers (LSPs)
     lua-language-server
-    
+    nushell
     # Web Development LSPs
     typescript-language-server      # TypeScript/JavaScript
     nodePackages.vscode-langservers-extracted  # HTML, CSS, JSON, ESLint
