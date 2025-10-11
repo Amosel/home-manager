@@ -84,7 +84,7 @@
     tailwindcss-language-server    # TailwindCSS
 
     # Systems Programming LSPs
-    rust-analyzer                  # Rust
+    rust-analyzer                 # Rust
     gopls                         # Go
 
     # Python LSPs
@@ -103,7 +103,7 @@
     ripgrep
     fd
     # Infrastructure and Automation
-    ansible                       # IT automation (includes ansible-playbook)
+    ansible                       # IT automation
     
     # AI-powered development tools
     claude-code                   # Agentic coding tool for terminal
