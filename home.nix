@@ -82,29 +82,32 @@
     nodePackages.vscode-langservers-extracted  # HTML, CSS, JSON, ESLint
     nodePackages.yaml-language-server          # YAML
     tailwindcss-language-server    # TailwindCSS
-    
+
     # Systems Programming LSPs
     rust-analyzer                  # Rust
     gopls                         # Go
-    
+
     # Python LSPs
     pyright                       # Python (Microsoft's type checker)
     # basedpyright                # Alternative Python LSP (uncomment if preferred)
-    
+
     # Other Language LSPs
     java-language-server          # Java
     kotlin-language-server        # Kotlin
     bash-language-server          # Bash/Shell
     # dockerfile-language-server    # Docker (package not available)
     cmake-language-server         # CMake
-    
+
     # Formatting and Linting
     stylua                        # Lua formatter
     ripgrep
     fd
+    # Infrastructure and Automation
+    ansible                       # IT automation (includes ansible-playbook)
+    
     # AI-powered development tools
     claude-code                   # Agentic coding tool for terminal
-    
+
     # Optional: additional tools that work well with LazyVim
     tree-sitter
     nodejs  # Required for many LSPs and plugins
@@ -216,6 +219,8 @@
       daml="~/.daml/bin/daml";
       # Use GNU sed instead of BSD sed (from Nix)
       sed="~/.nix-profile/bin/sed";
+      # Claude with container-use MCP tools
+      claude-cu="claude --allowedTools mcp__container-use__environment_checkpoint,mcp__container-use__environment_create,mcp__container-use__environment_add_service,mcp__container-use__environment_file_delete,mcp__container-use__environment_file_list,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_open,mcp__container-use__environment_run_cmd,mcp__container-use__environment_update";
     };
     initExtra = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
@@ -233,6 +238,8 @@
     shellAliases = {
       # Use GNU sed instead of BSD sed (from Nix)
       sed="~/.nix-profile/bin/sed";
+      # Claude with container-use MCP tools
+      claude-cu="claude --allowedTools mcp__container-use__environment_checkpoint,mcp__container-use__environment_create,mcp__container-use__environment_add_service,mcp__container-use__environment_file_delete,mcp__container-use__environment_file_list,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_open,mcp__container-use__environment_run_cmd,mcp__container-use__environment_update";
     };
     initExtra = ''
       shopt -s histappend
