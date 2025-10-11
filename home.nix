@@ -1,5 +1,36 @@
 { config, lib, pkgs, ... }:
 
+let
+  # Shared shell aliases for both zsh and bash
+  commonShellAliases = {
+    # ls: adding colors, verbose listing and humanize the file sizes:
+    ls="ls --color -l -h";
+    ll="ls --color=auto -alF";
+    # grep: color and show the line number for each match:
+    grep="grep -n --color";
+    # mkdir: create parent directories
+    mkdir="mkdir -pv";
+    # ping: stop after 5 pings
+    ping="ping -c 5";
+    # curl: only display HTTP header
+    HEAD="curl -I";
+    # Search through your command history and print the top 10 commands
+    history-stat = "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
+    # DAML SDK alias
+    daml="~/.daml/bin/daml";
+    # Use GNU sed instead of BSD sed (from Nix)
+    sed="~/.nix-profile/bin/sed";
+  };
+
+  # Shell functions that work in both zsh and bash
+  shellFunctions = ''
+    # Claude with container-use tools
+    # Alternative versions
+    ccu() {
+      claude --allowedTools "$CONTAINER_USE_MCP" "$@"
+    }
+  '';
+in
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -99,12 +130,12 @@
     ripgrep
     fd
     # Infrastructure and Automation
-    ansible                       # IT automation (includes ansible-playbook)
-    
+    ansible                       # IT automation
+
     # Optional: additional tools that work well with LazyVim
     tree-sitter
     nodejs  # Required for many LSPs and plugins
-    
+
     # Create protobuf-language-server wrapper for Zed compatibility
     (pkgs.writeShellScriptBin "protobuf-language-server" ''
       exec ${pkgs.protols}/bin/protols "$@"
@@ -181,6 +212,8 @@
       "$PATH"
     ];
     EDITOR = "nvim";
+    # MCP - container-use tools
+    CONTAINER_USE_MCP = "mcp__container-use__environment_create,mcp__container-use__environment_list,mcp__container-use__environment_delete,mcp__container-use__environment_open,mcp__container-use__environment_close,mcp__container-use__environment_run_cmd,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_file_list,mcp__container-use__environment_file_delete,mcp__container-use__environment_add_service,mcp__container-use__environment_checkpoint,mcp__container-use__environment_restore,mcp__container-use__environment_update";
   };
 
   programs.home-manager.enable = true;
@@ -192,33 +225,13 @@
       size = 10000;
       save = 10000;
     };
-    shellAliases = {
-      # ls: adding colors, verbose listign
-      # and humanize the file sizes:
-      ls="ls --color -l -h";
-      ll="ls --color=auto -alF";
-      # grep: color and show the line
-      # number for each match:
-      grep="grep -n --color";
-      # mkdir: create parent directories
-      mkdir="mkdir -pv";
-      # ping: stop after 5 pings
-      ping="ping -c 5";
-      # curl: only display HTTP header
-      HEAD="curl -I";
-      # Search through your command history and print the top 10 commands
-      history-stat= "history 0 | awk '{print $2}' | sort | uniq -c | sort -n -r | head";
-      # DAML SDK alias
-      daml="~/.daml/bin/daml";
-      # Use GNU sed instead of BSD sed (from Nix)
-      sed="~/.nix-profile/bin/sed";
-      # Claude with container-use MCP tools
-      claude-cu="claude --allowedTools mcp__container-use__environment_checkpoint,mcp__container-use__environment_create,mcp__container-use__environment_add_service,mcp__container-use__environment_file_delete,mcp__container-use__environment_file_list,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_open,mcp__container-use__environment_run_cmd,mcp__container-use__environment_update";
-    };
+    shellAliases = commonShellAliases;
     initExtra = ''
       eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
       eval "$(/opt/homebrew/bin/brew shellenv)"
       setopt INC_APPEND_HISTORY
+
+      ${shellFunctions}
     '';
     # Hook that runs after all other zsh initialization
     loginExtra = ''
@@ -228,12 +241,7 @@
   };
   programs.bash = {
     enable = true;
-    shellAliases = {
-      # Use GNU sed instead of BSD sed (from Nix)
-      sed="~/.nix-profile/bin/sed";
-      # Claude with container-use MCP tools
-      claude-cu="claude --allowedTools mcp__container-use__environment_checkpoint,mcp__container-use__environment_create,mcp__container-use__environment_add_service,mcp__container-use__environment_file_delete,mcp__container-use__environment_file_list,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_open,mcp__container-use__environment_run_cmd,mcp__container-use__environment_update";
-    };
+    shellAliases = commonShellAliases;
     initExtra = ''
       shopt -s histappend
       export HISTSIZE=10000
@@ -242,6 +250,10 @@
       export HISTIGNORE="ls:bg:fg:exit"
       export HISTTIMEFORMAT="%F %T "
       PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+      eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+
+      ${shellFunctions}
     '';
   };
 
