@@ -129,6 +129,7 @@ in
     stylua                        # Lua formatter
     ripgrep
     fd
+    ncdu
     # Infrastructure and Automation
     ansible                       # IT automation
 
@@ -213,7 +214,28 @@ in
     ];
     EDITOR = "nvim";
     # MCP - container-use tools
-    CONTAINER_USE_MCP = "mcp__container-use__environment_create,mcp__container-use__environment_list,mcp__container-use__environment_delete,mcp__container-use__environment_open,mcp__container-use__environment_close,mcp__container-use__environment_run_cmd,mcp__container-use__environment_file_read,mcp__container-use__environment_file_write,mcp__container-use__environment_file_list,mcp__container-use__environment_file_delete,mcp__container-use__environment_add_service,mcp__container-use__environment_checkpoint,mcp__container-use__environment_restore,mcp__container-use__environment_update";
+    CONTAINER_USE_MCP = lib.concatStringsSep "," [
+      # Environment Lifecycle
+      "mcp__container-use__environment_create"
+      "mcp__container-use__environment_list"
+      "mcp__container-use__environment_open"
+      "mcp__container-use__environment_config"
+      "mcp__container-use__environment_update_metadata"
+
+      # File Operations (in environment)
+      "mcp__container-use__environment_file_read"
+      "mcp__container-use__environment_file_write"
+      "mcp__container-use__environment_file_edit"
+      "mcp__container-use__environment_file_delete"
+      "mcp__container-use__environment_file_list"
+
+      # Command Execution
+      "mcp__container-use__environment_run_cmd"
+
+      # Advanced Features
+      "mcp__container-use__environment_add_service"
+      "mcp__container-use__environment_checkpoint"
+    ];
   };
 
   programs.home-manager.enable = true;
