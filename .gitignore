@@ -12,7 +12,11 @@ result-*
 
 # Editor files
 .vscode/
+.claude/
 *.swp
 *.swo
+
+# Test scripts
+test/
 
 # Don't ignore flake.lock - we want reproducibility for home-manager
