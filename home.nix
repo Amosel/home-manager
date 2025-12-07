@@ -129,6 +129,10 @@ in
     stylua                        # Lua formatter
     ripgrep
     fd
+    # recoll - currently broken on macOS (v1.39.1 has build issues with X11/iconv)
+    # Consider using Homebrew or waiting for a fixed version
+    # recoll
+    tika
     ncdu
     # Infrastructure and Automation
     ansible                       # IT automation
