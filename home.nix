@@ -134,8 +134,14 @@ in
     # recoll
     tika
     ncdu
+    exiftool
     # Infrastructure and Automation
     ansible                       # IT automation
+    go-task                       # Task runner (Taskfile)
+    cue                           # CUE language CLI
+    # nodePackages.ajv-cli          # JSON Schema validator CLI (removed from nixpkgs; install via npm if needed)
+    shellcheck                    # Shell script linter
+    bats                          # Bash Automated Testing System
 
     # Optional: additional tools that work well with LazyVim
     tree-sitter
