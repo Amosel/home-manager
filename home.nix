@@ -3,9 +3,17 @@
 let
   # Shared shell aliases for both zsh and bash
   commonShellAliases = {
-    # ls: adding colors, verbose listing and humanize the file sizes:
-    ls="ls --color -l -h";
-    ll="ls --color=auto -alF";
+    # lla base aliases (table view -T; lla shows dotfiles by default)
+    ls   = "lla -T --no-dotfiles";                    # table view, hide dotfiles
+    ll   = "lla -T --no-dotfiles";                    # table view, hide dotfiles
+    la   = "lla -T";                                  # table view, show all
+    # Extra lla views
+    lt   = "lla -t -d 2";                             # shallow tree
+    ltt  = "lla -t -d 3";                             # deeper tree
+    lS   = "lla -T -s size";                          # table, largest first
+    lnew = "lla -T -s date";                          # table, newest first
+    ld   = "lla -T --dirs-only";                      # table, directories only
+    lf   = "lla -T --files-only";                     # table, files only
     # grep: color and show the line number for each match:
     grep="grep -n --color";
     # mkdir: create parent directories
@@ -129,6 +137,7 @@ in
     stylua                        # Lua formatter
     ripgrep
     fd
+    lla                                           # modern ls replacement (https://github.com/chaqchase/lla)
     # recoll - currently broken on macOS (v1.39.1 has build issues with X11/iconv)
     # Consider using Homebrew or waiting for a fixed version
     # recoll
@@ -166,6 +175,41 @@ in
     #   org.gradle.console=verbose
     #   org.gradle.daemon.idletimeout=3600000
     # '';
+
+    # lla — declarative config (https://github.com/chaqchase/lla)
+    ".config/lla/config.toml".text = ''
+      default_sort = "name"
+      default_format = "default"
+      show_icons = true
+      include_dirs = false
+      permission_format = "symbolic"
+      theme = "default"
+      enabled_plugins = []
+      plugins_dir = "~/.config/lla/plugins"
+      default_depth = 3
+
+      [sort]
+      dirs_first = true
+      case_sensitive = false
+      natural = true
+
+      [filter]
+      case_sensitive = false
+      no_dotfiles = false
+
+      [formatters.tree]
+      max_lines = 20000
+
+      [formatters.grid]
+      ignore_width = false
+      max_width = 200
+
+      [listers.recursive]
+      max_entries = 20000
+
+      [listers.fuzzy]
+      ignore_patterns = ["node_modules", "target", ".git", ".idea", ".vscode"]
+    '';
   };
 
   # Home Manager can also manage your environment variables through
