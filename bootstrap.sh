@@ -14,6 +14,36 @@ log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 
+# Run command with timeout across GNU/macOS environments.
+run_with_timeout() {
+    local seconds="$1"
+    shift
+
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$seconds" "$@"
+        return $?
+    fi
+
+    if command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "$seconds" "$@"
+        return $?
+    fi
+
+    "$@" &
+    local cmd_pid=$!
+    (
+        sleep "$seconds"
+        kill "$cmd_pid" >/dev/null 2>&1 || true
+    ) &
+    local timer_pid=$!
+
+    wait "$cmd_pid"
+    local cmd_status=$?
+    kill "$timer_pid" >/dev/null 2>&1 || true
+    wait "$timer_pid" 2>/dev/null || true
+    return "$cmd_status"
+}
+
 # Configuration
 REPO_URL="${DOTFILES_REPO_URL:-}" # Set this environment variable or update below
 USERNAME="amoselmaliah"
@@ -220,7 +250,7 @@ bootstrap_neovim() {
     # Bootstrap LazyVim (headless installation)
     log_info "Installing LazyVim plugins (this may take a few minutes)..."
     
-    if timeout 300 nvim --headless "+Lazy! sync" +qa 2>/dev/null; then
+    if run_with_timeout 300 nvim --headless "+Lazy! sync" +qa 2>/dev/null; then
         log_success "LazyVim plugins installed successfully"
     else
         log_warning "LazyVim plugin installation may have failed or timed out"

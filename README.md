@@ -150,9 +150,8 @@ ls ~/.local/share/nvim/mason/packages/  # Mason-managed tools
 ├── flake.nix         # Nix flake definition
 ├── flake.lock        # Exact version pins
 ├── home.nix          # Main macOS configuration
-├── home-linux.nix    # Linux server config
-├── gcloud-vm.nix     # Google Cloud VM config
-└── nvim/default.nix  # Additional Nix nvim config
+├── vm/flake.nix      # Linux VM Home Manager flake
+└── nvim/default.nix  # Optional Nix neovim module
 
 ~/.config/nvim/
 ├── init.lua          # Main Neovim entry point
