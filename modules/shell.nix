@@ -23,6 +23,7 @@ let
     fi
 
     export PATH="$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:$PATH"
+    export PATH="$HOME/.npm-global/bin:$PATH"
     export PATH="$HOME/.opencode/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/.foundry/bin:$HOME/go/bin:$HOME/.pub-cache/bin:$PATH"
     export PATH="$HOME/.deno/bin:$HOME/.modular/bin:$HOME/.daml/bin:/opt/canton/bin:$PATH"
   '';
