@@ -55,6 +55,7 @@ in
       nixd
 
       lua-language-server
+      nodePackages.prettier
       typescript-language-server
       nodePackages.vscode-langservers-extracted
       nodePackages.yaml-language-server
@@ -72,6 +73,8 @@ in
       alejandra
       black
       isort
+      ruff
+      hadolint
       shellcheck
       yamllint
       statix

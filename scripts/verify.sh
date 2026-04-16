@@ -82,11 +82,18 @@ else
 fi
 
 section "Neovim"
-if nvim --headless +qall >/dev/null 2>&1; then
+neovim_output="$(mktemp)"
+neovim_xdg_dir="$(mktemp -d)"
+if XDG_STATE_HOME="$neovim_xdg_dir/state" \
+   XDG_DATA_HOME="$neovim_xdg_dir/data" \
+   XDG_CACHE_HOME="$neovim_xdg_dir/cache" \
+   nvim --headless +qall >"$neovim_output" 2>&1 && ! grep -q "Error detected while processing" "$neovim_output"; then
     ok "headless start" "ok"
 else
-    fail "headless start" "nvim failed to start"
+    fail "headless start" "$(tr '\n' ' ' <"$neovim_output" | sed 's/[[:space:]]\+/ /g')"
 fi
+rm -f "$neovim_output"
+rm -rf "$neovim_xdg_dir"
 
 section "Summary"
 if [[ $ERRORS -eq 0 && $WARNINGS -eq 0 ]]; then

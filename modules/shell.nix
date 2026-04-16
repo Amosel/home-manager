@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 let
   commonShellAliases = {
@@ -29,6 +29,14 @@ let
   '';
 in
 {
+  home.file.".npmrc".text = ''
+    prefix=${config.home.homeDirectory}/.npm-global
+  '';
+
+  home.activation.npmGlobalPrefix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "$HOME/.npm-global"
+  '';
+
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
