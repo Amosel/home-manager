@@ -4,7 +4,6 @@ let
   # Shared shell aliases for both zsh and bash
   commonShellAliases = {
     # lla base aliases (table view -T; lla shows dotfiles by default)
-    ls   = "lla -T --no-dotfiles";                    # table view, hide dotfiles
     ll   = "lla -T --no-dotfiles";                    # table view, hide dotfiles
     la   = "lla -T";                                  # table view, show all
     # Extra lla views
@@ -32,6 +31,20 @@ let
 
   # Shell functions that work in both zsh and bash
   shellFunctions = ''
+    # Keep bare ls as the nicer lla view, but preserve normal ls flag behavior.
+    ls() {
+      if [ "$#" -eq 0 ]; then
+        command lla -T --no-dotfiles
+      else
+        command /bin/ls "$@"
+      fi
+    }
+
+    # Apply this repo's Home Manager flake config for the local user.
+    hms() {
+      command home-manager switch --flake "${config.home.homeDirectory}/.config/home-manager#amoselmaliah" "$@"
+    }
+
     # Claude with container-use tools
     # Alternative versions
     ccu() {
@@ -159,6 +172,98 @@ in
     # Create protobuf-language-server wrapper for Zed compatibility
     (pkgs.writeShellScriptBin "protobuf-language-server" ''
       exec ${pkgs.protols}/bin/protols "$@"
+    '')
+
+    # mlx-codex: start a local vllm-mlx inference server and launch Codex against it
+    # Usage:
+    #   mlx-codex run   [model]  — start server + open Codex
+    #   mlx-codex serve [model]  — start server only (OpenAI-compatible endpoint)
+    #   mlx-codex stop           — stop a running server
+    #   mlx-codex logs           — tail server logs
+    # Env: MLX_PORT (default 8000), MLX_MAX_TOKENS (default 32768)
+    (pkgs.writeShellScriptBin "mlx-codex" ''
+      VENV="${config.home.homeDirectory}/.venv-vllm-metal"
+      PORT="''${MLX_PORT:-8000}"
+      MAX_TOKENS="''${MLX_MAX_TOKENS:-32768}"
+      LOG_FILE="/tmp/mlx-server.log"
+      PID_FILE="/tmp/mlx-server.pid"
+      DEFAULT_MODEL="mlx-community/gemma-4-31b-it-4bit"
+
+      _start_server() {
+        local model="$1"
+        echo "Starting vllm-mlx server — model: $model | port: $PORT"
+        "$VENV/bin/vllm-mlx" serve "$model" \
+          --port "$PORT" \
+          --host 127.0.0.1 \
+          --max-tokens "$MAX_TOKENS" \
+          --continuous-batching \
+          &>"$LOG_FILE" &
+        echo $! >"$PID_FILE"
+        echo "PID: $(cat "$PID_FILE")  |  logs: tail -f $LOG_FILE"
+      }
+
+      _wait_ready() {
+        echo -n "Waiting for server"
+        for i in $(seq 1 60); do
+          if curl -sf "http://localhost:$PORT/v1/models" >/dev/null 2>&1; then
+            echo " ready"
+            return 0
+          fi
+          printf "."
+          sleep 2
+        done
+        echo " timed out"
+        return 1
+      }
+
+      _stop_server() {
+        if [ -f "$PID_FILE" ]; then
+          local pid; pid=$(cat "$PID_FILE")
+          echo "Stopping server (PID $pid)"
+          kill "$pid" 2>/dev/null || true
+          rm -f "$PID_FILE"
+        fi
+      }
+
+      CMD="''${1:-help}"
+      shift 2>/dev/null || true
+      MODEL="''${1:-$DEFAULT_MODEL}"
+
+      case "$CMD" in
+        run)
+          _start_server "$MODEL"
+          trap _stop_server EXIT INT TERM
+          _wait_ready || exit 1
+          OPENAI_BASE_URL="http://localhost:$PORT/v1" \
+          OPENAI_API_KEY="local" \
+            codex -c "model=\"$MODEL\""
+          ;;
+        serve)
+          _start_server "$MODEL"
+          trap _stop_server EXIT INT TERM
+          _wait_ready || exit 1
+          echo "Server at http://localhost:$PORT/v1  (Ctrl-C to stop)"
+          wait
+          ;;
+        stop)
+          _stop_server
+          ;;
+        logs)
+          tail -f "$LOG_FILE"
+          ;;
+        *)
+          echo "Usage: mlx-codex <command> [model]"
+          echo ""
+          echo "Commands:"
+          echo "  run   [model]  Start server + launch Codex"
+          echo "  serve [model]  Start server only"
+          echo "  stop           Stop running server"
+          echo "  logs           Tail server logs"
+          echo ""
+          echo "Default model: $DEFAULT_MODEL"
+          echo "Env:  MLX_PORT (default 8000), MLX_MAX_TOKENS (default 32768)"
+          ;;
+      esac
     '')
   ];
 
@@ -343,6 +448,19 @@ in
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
+  };
+
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    flags = [ "--disable-up-arrow" ];
+    settings = {
+      auto_sync = false;
+      update_check = false;
+      style = "compact";
+      inline_height = 20;
+    };
   };
 
   programs.starship = {
