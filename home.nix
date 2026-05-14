@@ -98,7 +98,11 @@ in
     fnm
     git
     git-lfs
-    # wget
+    gh
+    glab
+    git-filter-repo
+    tig
+    wget
     # android-tools
     # swift-format
     gitui
@@ -116,12 +120,16 @@ in
     pipx
     uv
     httpie
+    tree
+    socat
+    sox
     gawk        # GNU awk
     findutils   # GNU find
     gnused      # GNU sed
     protobuf    # Protocol Buffers
     protols     # Protocol Buffers language server
     buf         # Modern Protocol Buffers toolchain
+    grpcurl
     # Language Servers (LSPs)
     lua-language-server
     nushell
@@ -154,6 +162,8 @@ in
     # recoll - currently broken on macOS (v1.39.1 has build issues with X11/iconv)
     # Consider using Homebrew or waiting for a fixed version
     # recoll
+    poppler
+    ocrmypdf
     tika
     ncdu
     exiftool

@@ -58,13 +58,16 @@ main() {
     
     # Install prerequisites
     install_xcode_tools
-    
+
     # Install and configure Nix
     install_nix
     enable_nix_flakes
     
     # Get configuration files
     get_configurations
+
+    # Install Homebrew after configs are present so Brewfile is available
+    install_homebrew
     
     # Activate Home Manager
     activate_home_manager
@@ -118,6 +121,32 @@ install_xcode_tools() {
             sleep 5
         done
         log_success "Xcode Command Line Tools installed successfully"
+    fi
+}
+
+install_homebrew() {
+    log_info "Installing Homebrew..."
+    
+    if command -v brew >/dev/null 2>&1; then
+        log_success "Homebrew already installed ($(brew --version | head -1))"
+    else
+        log_info "Downloading and installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+        log_success "Homebrew installed successfully"
+    fi
+    
+    # Install packages from Brewfile if it exists
+    local brewfile="$HOME/.config/home-manager/Brewfile"
+    if [[ -f "$brewfile" ]]; then
+        log_info "Installing Homebrew packages from Brewfile..."
+        if brew bundle --file="$brewfile" --no-lock; then
+            log_success "Homebrew packages installed"
+        else
+            log_warning "Some Brewfile entries failed; review brew output"
+        fi
+    else
+        log_warning "No Brewfile found at $brewfile, skipping brew bundle"
     fi
 }
 
