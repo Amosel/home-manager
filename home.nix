@@ -27,6 +27,10 @@ let
     daml="~/.daml/bin/daml";
     # Use GNU sed instead of BSD sed (from Nix)
     sed="~/.nix-profile/bin/sed";
+    # Security audit shortcuts
+    scan-fast = "trivy repo .";
+    scan-deep = "npx megalinter-runner --flavor security";
+    scan-secrets = "trivy repo --scanners secret .";
   };
 
   # Shell functions that work in both zsh and bash
@@ -107,6 +111,7 @@ in
     # swift-format
     gitui
     lazygit
+    docker
     lazydocker
     watch
     jq
@@ -174,6 +179,7 @@ in
     # nodePackages.ajv-cli          # JSON Schema validator CLI (removed from nixpkgs; install via npm if needed)
     shellcheck                    # Shell script linter
     bats                          # Bash Automated Testing System
+    trivy                         # Security scanner
 
     # Optional: additional tools that work well with LazyVim
     tree-sitter
