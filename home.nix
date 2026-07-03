@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, hermes-agent, ... }:
 
 let
   # Shared shell aliases for both zsh and bash
@@ -184,6 +184,7 @@ in
     # Optional: additional tools that work well with LazyVim
     tree-sitter
     nodejs  # Required for many LSPs and plugins
+    hermes-agent.packages.${pkgs.system}.default
 
     # Create protobuf-language-server wrapper for Zed compatibility
     (pkgs.writeShellScriptBin "protobuf-language-server" ''
