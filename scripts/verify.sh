@@ -59,7 +59,7 @@ for f in flake.nix flake.lock home.nix modules packages.nix; do
 done
 
 section "Shell"
-for cmd in zsh bash starship eza bat zoxide just delta fzf rg fd; do
+for cmd in zsh bash starship eza bat zoxide just delta fzf rg fd gitleaks scan-secrets; do
     check_cmd "$cmd" "$cmd"
 done
 
