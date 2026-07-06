@@ -81,6 +81,16 @@ else
     warn "home-manager-review" "run home-manager switch to install"
 fi
 
+for var in SKILL_SOURCE_REPO SKILL_PERSONA_SOURCE_REPO CODEX_SKILLS_DIR SKILL_REGISTRY_DIR SKILL_ARCHIVE_DIR; do
+    if [[ -n "${!var:-}" ]]; then
+        ok "$var" "${!var}"
+    else
+        warn "$var" "not set"
+    fi
+done
+
+check_optional_cmd "skill-audit" "skill-audit"
+
 section "Neovim"
 neovim_output="$(mktemp)"
 neovim_xdg_dir="$(mktemp -d)"

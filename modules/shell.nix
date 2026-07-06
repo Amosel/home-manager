@@ -29,6 +29,12 @@ let
   '';
 in
 {
+  # Keep npm-installed CLIs visible outside interactive shell init as well
+  # so GUI-launched tools and subprocesses resolve the same binaries.
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.npm-global/bin"
+  ];
+
   home.file.".npmrc".text = ''
     prefix=${config.home.homeDirectory}/.npm-global
   '';
