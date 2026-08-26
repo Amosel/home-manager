@@ -303,6 +303,7 @@ in
     # recoll
     poppler
     ocrmypdf
+    pandoc
     tika
     ncdu
     exiftool
