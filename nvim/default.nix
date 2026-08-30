@@ -1,17 +1,4 @@
-{ pkgs, ...}:
 {
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
-    vimdiffAlias = true;
-    plugins = with pkgs.vimPlugins; [
-      nvim-lspconfig
-      nvim-treesitter.withAllGrammars
-      plenary-nvim
-      gruvbox-material
-      mini-nvim
-    ];
-  };
+  # Legacy compatibility file. The active Neovim baseline now lives in
+  # modules/editor.nix so the repository owns one reproducible editor setup.
 }
