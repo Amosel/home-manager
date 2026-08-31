@@ -31,10 +31,21 @@
       push.autoSetupRemote = true;
       pull.rebase = false;
       rerere.enabled = true;
-      merge.conflictstyle = "zdiff3";
+      merge = {
+        conflictstyle = "zdiff3";
+        tool = "ksdiff";
+      };
       diff = {
         algorithm = "histogram";
         colorMoved = "default";
+        tool = "ksdiff";
+      };
+      difftool.prompt = false;
+      "difftool \"ksdiff\"".cmd = "ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"";
+      mergetool.prompt = false;
+      "mergetool \"ksdiff\"" = {
+        cmd = "ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" \"$REMOTE\"";
+        trustExitCode = true;
       };
       core = {
         excludesfile = "/Users/amoselmaliah/.gitignore_global";
