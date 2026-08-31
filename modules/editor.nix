@@ -9,6 +9,7 @@
     vimdiffAlias = true;
     withNodeJs = true;
     withPython3 = true;
+    withRuby = true;
     plugins = with pkgs.vimPlugins; [
       luasnip
       catppuccin-nvim

@@ -70,10 +70,10 @@ in {
       nixd
 
       lua-language-server
-      nodePackages.prettier
+      prettier
       typescript-language-server
-      nodePackages.vscode-langservers-extracted
-      nodePackages.yaml-language-server
+      vscode-langservers-extracted
+      yaml-language-server
       tailwindcss-language-server
       rust-analyzer
       gopls

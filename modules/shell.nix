@@ -66,6 +66,7 @@ in
   # Keep npm-installed CLIs visible outside interactive shell init as well
   # so GUI-launched tools and subprocesses resolve the same binaries.
   home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/.npm-global/bin"
     "${config.home.homeDirectory}/.opencode/bin"
     "${config.home.homeDirectory}/.bun/bin"
@@ -166,6 +167,12 @@ in
 
       eval "$(zoxide init zsh)"
     '';
+    profileExtra = ''
+      # Nix daemon integration for macOS
+      if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+      fi
+    '';
     loginExtra = ''
       bindkey -e
     '';
@@ -216,7 +223,8 @@ in
     enableZshIntegration = true;
     enableBashIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
-    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+    fileWidget.command = "fd --type f --hidden --follow --exclude .git";
+    historyWidget.command = "";
   };
 
   programs.zoxide.enable = true;
