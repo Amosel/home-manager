@@ -5,6 +5,29 @@
   ...
 }: let
   chatgptExportPath = "/Users/amoselmaliah/dev/scripts/chatgpt-export-workspaces.sh";
+  searchCli = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "search-cli";
+    version = "0.9.0";
+    src = pkgs.fetchurl {
+      url = "https://github.com/paperfoot/search-cli/releases/download/v${version}/search-aarch64-apple-darwin.tar.gz";
+      # Published by paperfoot/homebrew-tap.
+      sha256 = "349db03ab8dcc376a1ca09ef67fe6868fb0ee826db39a2b56f29fe3ba91a9ac7";
+    };
+    sourceRoot = ".";
+    dontFixup = true;
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 search "$out/bin/search"
+      runHook postInstall
+    '';
+    meta = {
+      description = "Multi-provider web search CLI for AI agents";
+      homepage = "https://github.com/paperfoot/search-cli";
+      license = lib.licenses.mit;
+      platforms = [ "aarch64-darwin" ];
+      mainProgram = "search";
+    };
+  };
 in {
   home.packages = with pkgs;
     [
@@ -37,6 +60,7 @@ in {
       wget
       unzip
       httpie
+      searchCli
       ncdu
       tree
       tree-sitter
