@@ -65,6 +65,7 @@ in {
       pipx
       nodejs
       nushell
+      codex
 
       ripgrep
       fd

@@ -91,6 +91,12 @@ for cmd in ffmpeg whisper-cli whisper-transcribe pandoc pdftotext ocrmypdf exift
 done
 
 section "Codex"
+if codex_version="$(codex --version 2>&1)"; then
+    ok "codex" "$codex_version"
+else
+    fail "codex" "$codex_version"
+fi
+
 if [[ -f "$HOME/.codex/skills/home-manager-review/SKILL.md" ]]; then
     ok "home-manager-review" "installed"
 else
