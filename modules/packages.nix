@@ -5,6 +5,39 @@
   ...
 }: let
   chatgptExportPath = "/Users/amoselmaliah/dev/scripts/chatgpt-export-workspaces.sh";
+  # Match the existing CLI without updating the workstation-wide nixpkgs pin.
+  # Keep the complete upstream layout: code-mode, voice, shell, and rg resources.
+  codexCli = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "codex";
+    version = "0.157.0";
+    src = pkgs.fetchurl {
+      url = "https://github.com/openai/codex/releases/download/rust-v${version}/codex-package-aarch64-apple-darwin.tar.gz";
+      hash = "sha256-l4Cfkcs1XlVIDNehJvmtJLt7FiIiUV4wKGvKxvupSs0=";
+    };
+    sourceRoot = ".";
+    dontFixup = true;
+    installPhase = ''
+      runHook preInstall
+      mkdir -p "$out"
+      cp -R bin codex-package.json codex-path codex-resources "$out/"
+      runHook postInstall
+    '';
+    doInstallCheck = true;
+    installCheckPhase = ''
+      runHook preInstallCheck
+      test "$("$out/bin/codex" --version)" = "codex-cli ${version}"
+      test -x "$out/bin/codex-code-mode-host"
+      test -x "$out/codex-path/rg"
+      runHook postInstallCheck
+    '';
+    meta = {
+      description = "OpenAI Codex CLI, complete upstream release package";
+      homepage = "https://github.com/openai/codex";
+      license = lib.licenses.asl20;
+      platforms = [ "aarch64-darwin" ];
+      mainProgram = "codex";
+    };
+  };
   xurlCli = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "xurl";
     version = "1.3.2";
@@ -65,7 +98,7 @@ in {
       pipx
       nodejs
       nushell
-      codex
+      codexCli
 
       ripgrep
       fd

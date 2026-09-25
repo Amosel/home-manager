@@ -43,11 +43,12 @@ let
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
 
-    export PATH="$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:$PATH"
     export PATH="$HOME/.npm-global/bin:$PATH"
     export PATH="$HOME/.opencode/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/.foundry/bin:$HOME/go/bin:$HOME/.pub-cache/bin:$PATH"
     export PATH="$JAVA_HOME:$JAVA_HOME/bin:$ANDROID_HOME:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH"
     export PATH="$HOME/.deno/bin:$HOME/.modular/bin:$HOME/flutter/bin:$HOME/.daml/bin:/opt/canton/bin:$PATH"
+    # Managed tools take precedence over npm/Homebrew duplicates.
+    export PATH="$HOME/.local/bin:$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:$PATH"
 
     ls() {
       if [ "$#" -eq 0 ]; then
@@ -67,6 +68,7 @@ in
   # so GUI-launched tools and subprocesses resolve the same binaries.
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.nix-profile/bin"
     "${config.home.homeDirectory}/.npm-global/bin"
     "${config.home.homeDirectory}/.opencode/bin"
     "${config.home.homeDirectory}/.bun/bin"

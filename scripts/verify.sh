@@ -91,10 +91,18 @@ for cmd in ffmpeg whisper-cli whisper-transcribe pandoc pdftotext ocrmypdf exift
 done
 
 section "Codex"
-if codex_version="$(codex --version 2>&1)"; then
-    ok "codex" "$codex_version"
+managed_codex="$HOME/.nix-profile/bin/codex"
+if codex_version="$("$managed_codex" --version 2>&1)"; then
+    ok "codex (managed)" "$codex_version"
 else
-    fail "codex" "$codex_version"
+    fail "codex (managed)" "$codex_version"
+fi
+
+selected_codex="$(command -v codex || true)"
+if [[ -n "$selected_codex" && "$selected_codex" -ef "$managed_codex" ]]; then
+    ok "codex PATH" "$selected_codex"
+else
+    fail "codex PATH" "${selected_codex:-missing} shadows or differs from $managed_codex; start a fresh shell"
 fi
 
 if [[ -f "$HOME/.codex/skills/home-manager-review/SKILL.md" ]]; then

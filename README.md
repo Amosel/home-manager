@@ -33,7 +33,7 @@ Each module owns one concern. The goal is readability and safe iteration, not ab
 - language tooling for Nix, Go, Python, TypeScript, Rust, Bash, YAML, CMake, Java, Kotlin, and Protobuf
 - media/document tooling: `ffmpeg`, `whisper-cpp`, `whisper-transcribe`, `poppler`, `ocrmypdf`, `pandoc`, `tika`, and `exiftool`
 - security tooling: `trivy`, `gitleaks`, `scan-secrets`, `shellcheck`, `hadolint`, `statix`, and `deadnix`
-- agent tooling: Hermes flake package, OpenClaw config/bootstrap, Codex `home-manager-review` skill, and `skill-audit`
+- agent tooling: Codex CLI 0.157.0 (hash-pinned complete upstream Apple Silicon package), Hermes flake package, OpenClaw config/bootstrap, Codex `home-manager-review` skill, and `skill-audit`
 
 ## Install
 
@@ -69,3 +69,8 @@ home-manager switch --flake .#amoselmaliah
 - `scan-secrets` uses local `gitleaks` with redacted output.
 - Whisper helpers use the pinned `large-v3-turbo` model at `~/.local/share/whisper-models/ggml-large-v3-turbo.bin`.
 - OpenClaw activation may install `clawhub` into `~/.npm-global` if missing.
+
+Codex is managed through Home Manager. `scripts/verify.sh` checks the managed
+binary and rejects PATH shadowing by npm/Homebrew copies. After switching, start
+a fresh shell. Update the Codex version and release hash together in
+`modules/packages.nix`; the workstation-wide nixpkgs pin stays independent.
