@@ -161,6 +161,7 @@ in {
       gopls
       pyright
       bash-language-server
+      cmake
       cmake-language-server
       java-language-server
       kotlin-language-server
