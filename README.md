@@ -124,3 +124,20 @@ Lower-level helpers: `whisper-convert <input> <output.wav>`, `whisper-fast <16kH
 - `bootstrap.sh` uses live Nix/Homebrew installers, including Homebrew's GitHub `HEAD` script, and an unlocked Home Manager runner. The manual build above uses the repo's locked Home Manager input.
 - `Brewfile` versions are not pinned and overlap some Nix tools. Homebrew bundle changes are separate from `home-manager switch`.
 - External skill libraries, the optional export script, local MLX environment/models, and independently installed SDKs are not reproduced by the Nix lock file.
+
+
+### Global Codex hooks
+
+Definitions: [`config/codex-hooks.toml`](config/codex-hooks.toml). Deployment authority:
+`~/dev/scripts/skills/skill-manager/scripts/skill_manager.py hooks`.
+Run `hooks plan`, `hooks apply --execute`, then `hooks validate`. Home Manager
+provides workstation tooling; it does not write runtime `~/.codex/hooks.json`.
+The manifest declares Python, Atuin and Gitleaks by executable name;
+no new package or Home Manager activation is required. See skill-manager's
+`references/hooks.md` for schema, rollback, ownership and trust review.
+
+
+The hook manifest is now TOML v2. Its sibling `config/hook-assets/` contains
+hash-pinned deployment snapshots. It has no absolute workstation source paths;
+tools resolve from PATH at apply time. Journal state defaults to
+`~/.local/state/work-journal/.data/`. Old JSON manifest retired after migration.

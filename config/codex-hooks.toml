@@ -1,0 +1,59 @@
+version = 2
+tools = ["python3", "atuin", "gitleaks"]
+
+[bundles.gitleaks.files."gitleaks_hook.py"]
+path = "hook-assets/gitleaks/gitleaks_hook.py"
+sha256 = "91e6df07a0443c138ce214d70edc698ad76d40cafcafdd4d90946370c21a828b"
+
+[bundles.work-journal.files."journal.py"]
+path = "hook-assets/work-journal/journal.py"
+sha256 = "040716604c95886964b348eddd107cd356272d99920ca548061daef87d18f2bb"
+
+[bundles.work-journal.files."codex_capture.py"]
+path = "hook-assets/work-journal/codex_capture.py"
+sha256 = "e8ac5cbc1e43684fdc822f3bb10175c26ce20a4bac33667a606ce20a87a2a95e"
+
+[[owners]]
+id = "atuin"
+
+[[owners.entries]]
+event = "PostToolUse"
+matcher = "^Bash$"
+argv = ["${TOOL_atuin}", "hook", "codex"]
+
+[[owners.entries]]
+event = "PostToolUseFailure"
+matcher = "^Bash$"
+argv = ["${TOOL_atuin}", "hook", "codex"]
+
+[[owners.entries]]
+event = "PreToolUse"
+matcher = "^Bash$"
+argv = ["${TOOL_atuin}", "hook", "codex"]
+
+[[owners]]
+id = "gitleaks"
+
+[[owners.entries]]
+event = "SessionStart"
+matcher = "startup|resume"
+argv = ["${TOOL_python3}", "${BUNDLE_gitleaks}/gitleaks_hook.py", "--hook", "${TOOL_gitleaks}"]
+timeout = 65
+statusMessage = "Skill Manager: Gitleaks startup scan"
+
+[[owners]]
+id = "work-journal"
+
+[[owners.entries]]
+event = "PostToolUse"
+matcher = "*"
+argv = ["${TOOL_python3}", "${BUNDLE_work-journal}/codex_capture.py", "hook"]
+timeout = 5
+environment = { WORK_JOURNAL_ROOT = "${STATE_HOME}/work-journal" }
+
+[[owners.entries]]
+event = "PreToolUse"
+matcher = "*"
+argv = ["${TOOL_python3}", "${BUNDLE_work-journal}/codex_capture.py", "hook"]
+timeout = 5
+environment = { WORK_JOURNAL_ROOT = "${STATE_HOME}/work-journal" }
