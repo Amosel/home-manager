@@ -5,6 +5,29 @@
   ...
 }: let
   chatgptExportPath = "/Users/amoselmaliah/dev/scripts/chatgpt-export-workspaces.sh";
+  xurlCli = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "xurl";
+    version = "1.3.2";
+    src = pkgs.fetchurl {
+      url = "https://github.com/xdevplatform/xurl/releases/download/v${version}/xurl_Darwin_arm64.tar.gz";
+      # Published by xdevplatform/homebrew-tap for Darwin arm64.
+      sha256 = "08fa0a17a7357ffaddf55a108d9ab415600c651479a18c49eac54c1136e457e8";
+    };
+    sourceRoot = ".";
+    dontFixup = true;
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 xurl "$out/bin/xurl"
+      runHook postInstall
+    '';
+    meta = {
+      description = "Official authenticated CLI for the X API";
+      homepage = "https://github.com/xdevplatform/xurl";
+      license = lib.licenses.mit;
+      platforms = [ "aarch64-darwin" ];
+      mainProgram = "xurl";
+    };
+  };
   searchCli = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "search-cli";
     version = "0.9.0";
@@ -61,6 +84,7 @@ in {
       unzip
       httpie
       searchCli
+      xurlCli
       ncdu
       tree
       tree-sitter
