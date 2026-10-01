@@ -132,7 +132,7 @@ Definitions: [`config/codex-hooks.toml`](config/codex-hooks.toml). Deployment au
 `~/dev/scripts/skills/skill-manager/scripts/skill_manager.py hooks`.
 Run `hooks plan`, `hooks apply --execute`, then `hooks validate`. Home Manager
 provides workstation tooling; it does not write runtime `~/.codex/hooks.json`.
-The manifest declares Python, Atuin and Gitleaks by executable name;
+The manifest declares Python and Atuin by executable name;
 no new package or Home Manager activation is required. See skill-manager's
 `references/hooks.md` for schema, rollback, ownership and trust review.
 
