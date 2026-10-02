@@ -13,13 +13,9 @@ fail() { printf "  ${RED}XX %-24s${NC} %s\n" "$1" "$2"; ERRORS=$((ERRORS + 1)); 
 ERRORS=0
 WARNINGS=0
 
-if [[ -z "${SKILL_SOURCE_REPO:-}" ]]; then
-    unset __HM_SESS_VARS_SOURCED
-fi
-
 if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
-    # shellcheck disable=SC1091
     set +u
+    # shellcheck disable=SC1091
     . "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
     set -u
 fi
@@ -90,37 +86,6 @@ for cmd in ffmpeg whisper-cli whisper-transcribe pandoc pdftotext ocrmypdf exift
     check_optional_cmd "$cmd" "$cmd"
 done
 
-section "Codex"
-managed_codex="$HOME/.nix-profile/bin/codex"
-if codex_version="$("$managed_codex" --version 2>&1)"; then
-    ok "codex (managed)" "$codex_version"
-else
-    fail "codex (managed)" "$codex_version"
-fi
-
-selected_codex="$(command -v codex || true)"
-if [[ -n "$selected_codex" && "$selected_codex" -ef "$managed_codex" ]]; then
-    ok "codex PATH" "$selected_codex"
-else
-    fail "codex PATH" "${selected_codex:-missing} shadows or differs from $managed_codex; start a fresh shell"
-fi
-
-if [[ -f "$HOME/.codex/skills/home-manager-review/SKILL.md" ]]; then
-    ok "home-manager-review" "installed"
-else
-    warn "home-manager-review" "run home-manager switch to install"
-fi
-
-for var in SKILL_SOURCE_REPO SKILL_PERSONA_SOURCE_REPO CODEX_SKILLS_DIR SKILL_REGISTRY_DIR SKILL_ARCHIVE_DIR; do
-    if [[ -n "${!var:-}" ]]; then
-        ok "$var" "${!var}"
-    else
-        warn "$var" "not set"
-    fi
-done
-
-check_optional_cmd "skill-audit" "skill-audit"
-
 section "Neovim"
 neovim_output="$(mktemp)"
 if nvim --headless +qall >"$neovim_output" 2>&1 && ! grep -q "Error detected while processing" "$neovim_output"; then
@@ -132,7 +97,7 @@ rm -f "$neovim_output"
 
 section "Summary"
 if [[ $ERRORS -eq 0 && $WARNINGS -eq 0 ]]; then
-    printf "${GREEN}All checks passed.${NC}\n"
+    printf '%b\n' "${GREEN}All checks passed.${NC}"
 elif [[ $ERRORS -eq 0 ]]; then
     printf "${YELLOW}%s warning(s), no errors.${NC}\n" "$WARNINGS"
 else

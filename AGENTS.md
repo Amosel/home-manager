@@ -6,7 +6,6 @@ Prefer `home.nix`, `flake.nix`, and `flake.lock` as the source of truth over the
 
 When reviewing or changing this repo:
 
-- Treat it as `codex`-first, not Claude-first.
 - Favor small, reversible Home Manager changes over broad tool additions.
 - Flag doc drift whenever the README claims behavior or files that are not present.
 - Flag non-reproducible inputs such as unpinned GitHub `HEAD` fetches.
@@ -15,7 +14,7 @@ When reviewing or changing this repo:
 
 Before proposing new agent tooling, check:
 
-- whether it improves local Codex workflows directly
+- whether it improves local workflows directly
 - whether it can run headless and declaratively
 - whether it adds maintenance burden or auth complexity
 

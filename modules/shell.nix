@@ -28,7 +28,6 @@ let
     ping = "ping -c 5";
     HEAD = "curl -I";
     v = "nvim";
-    c = "codex";
     daml = "~/.daml/bin/daml";
     sed = "~/.nix-profile/bin/sed";
     scan-fast = "trivy repo .";
