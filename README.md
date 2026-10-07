@@ -1,6 +1,6 @@
 # macOS Home Manager Dev Environment
 
-Workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The single root profile is `amoselmaliah`, with home directory `/Users/amoselmaliah`.
+Workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The macOS profile is `amoselmaliah`, with home directory `/Users/amoselmaliah`. A separate Ubuntu profile targets the DigitalOcean Droplet.
 
 [home.nix](home.nix), [flake.nix](flake.nix), [flake.lock](flake.lock), and the imported modules are the source of truth. This repo manages global workstation tooling; project dependencies belong in project environments. Keep credentials outside the repo and Nix expressions.
 
@@ -10,16 +10,28 @@ Workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The sin
 | --- | --- |
 | `home.nix` | Module composition, username, home directory, Home Manager state version |
 | `flake.nix` / `flake.lock` | Apple Silicon profile and locked Nixpkgs, Home Manager, Hermes inputs |
+| `droplet/flake.nix` / `droplet/flake.lock` | Separately locked Linux profile inputs |
+| `droplet/home.nix` | Linux CLI, Bash, Git, and editor profile for the Droplet's root/admin and codex accounts |
 | `modules/packages.nix` | CLI packages, pinned search/xurl releases, `scan-secrets` |
 | `modules/shell.nix` | Zsh/Bash, PATH, aliases, terminal tools, environment variables |
 | `modules/git.nix` | Git identity, Delta, Kaleidoscope commands, GitHub CLI |
 | `modules/editor.nix` | Neovim plugins, LSP, completion, formatting, linting |
 | `modules/ai.nix` | Whisper and OpenClaw activation |
-| `Brewfile` | Separate Homebrew bundle, including casks, services, Go and Cargo entries |
+| `Brewfile` | macOS Homebrew bundle; Linux-compatible CLI equivalents are mapped into `droplet/home.nix` |
 | `bootstrap.sh` | Machine bootstrap and activation |
 | `scripts/verify.sh` | Installed-environment smoke checks |
 
 `nvim/default.nix` is a legacy stub. `vm/flake.nix` declares an `x86_64-linux` profile but imports the macOS-specific `home.nix`; it is not a ready-to-use Linux configuration.
+
+The Droplet profile is a separate flake and deliberately avoids importing macOS-specific modules. Apply it only on the Droplet:
+
+```bash
+home-manager switch -b hm-backup --flake ~/.config/home-manager/droplet#codex@codex-vast-flint-fae5
+```
+
+The profiles target `codex` at `/home/codex` and `root` at `/root`; account creation and sudo privileges are managed separately. The `hm-backup` suffix preserves existing dotfiles that collide with managed files, provided the backup destination does not already exist.
+
+The Droplet profile converts Brewfile CLI tools to Nix packages where available; `mactex-no-gui` maps to `texliveSmall`. Homebrew taps and GUI apps remain macOS-only. Other exclusions: `cocoapods` and `cargo-lipo` are Darwin-specific; `ruby-build`, `container-use`, `diskdiet-mcp`, and several Cargo entries have no package in the locked Nixpkgs (`beaker`, `cargo-run-script`, `cbindgen`, `cosmwasm-check`, `genson-rs`, `imessage-exporter`, `ralph-cli`, `uniffi_bindgen`). Cargo supplies `cargo tree` directly. PostgreSQL is installed as software only; Home Manager does not enable its system service. `1password-cli`, `ngrok`, and `trunk-io` are the only allowed unfree packages.
 
 ## Included tooling
 
