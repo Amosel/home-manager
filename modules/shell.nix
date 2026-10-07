@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  commonShellAliases = {
+  commonShellAliases = rec {
     l = "lla -T --no-dotfiles";
     ll = "lla -l --no-dotfiles";
     la = "lla -l --all";
@@ -22,6 +22,30 @@ let
     eg = "eza -la --git --group-directories-first --time-style=relative";
     ex = "eza -la --extended --flags --time-style=long-iso";
     er = "eza -la --git-repos --group-directories-first";
+
+    # Descriptive names for command completion; keep the short aliases in sync.
+    list-default = "ls";
+    list-table = l;
+    list-long = ll;
+    list-all = la;
+    list-tree = lt;
+    list-tree-deep = ltt;
+    list-directories = ld;
+    list-files = lf;
+    list-hidden = lhide;
+    list-git = lg;
+    list-git-all = lga;
+    list-newest = lnew;
+    list-oldest = lold;
+    list-largest = lbig;
+    list-timeline = ltime;
+    list-search = lgrep;
+    list-json = ljson;
+    list-raw = lraw;
+    list-git-details = eg;
+    list-extended = ex;
+    list-git-repositories = er;
+
     cat = "bat --paging=never";
     grep = "rg";
     mkdir = "mkdir -pv";
