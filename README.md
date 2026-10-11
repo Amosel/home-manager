@@ -1,6 +1,6 @@
 # macOS Home Manager Dev Environment
 
-Codex-first workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The single root profile is `amoselmaliah`, with home directory `/Users/amoselmaliah`.
+Workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The macOS profile is `amoselmaliah`, with home directory `/Users/amoselmaliah`. Development continues on `main`; the separate Ubuntu Droplet profile is retained for reference.
 
 [home.nix](home.nix), [flake.nix](flake.nix), [flake.lock](flake.lock), and the imported modules are the source of truth. This repo manages global workstation tooling; project dependencies belong in project environments. Keep credentials outside the repo and Nix expressions.
 
@@ -10,17 +10,28 @@ Codex-first workstation configuration for macOS on Apple Silicon (`aarch64-darwi
 | --- | --- |
 | `home.nix` | Module composition, username, home directory, Home Manager state version |
 | `flake.nix` / `flake.lock` | Apple Silicon profile and locked Nixpkgs, Home Manager, Hermes inputs |
-| `modules/packages.nix` | CLI packages, pinned Codex/search/xurl releases, `scan-secrets` |
+| `droplet/flake.nix` / `droplet/flake.lock` | Separately locked Linux profile inputs |
+| `droplet/home.nix` | Linux CLI, Bash, Git, and editor profile for the Droplet's root/admin and codex accounts |
+| `modules/packages.nix` | CLI packages, pinned search/xurl releases, `scan-secrets` |
 | `modules/shell.nix` | Zsh/Bash, PATH, aliases, terminal tools, environment variables |
 | `modules/git.nix` | Git identity, Delta, Kaleidoscope commands, GitHub CLI |
 | `modules/editor.nix` | Neovim plugins, LSP, completion, formatting, linting |
-| `modules/ai.nix` | Whisper, skill wiring, MLX helper, OpenClaw activation |
-| `codex-skills/home-manager-review/` | Bundled Codex review skill |
-| `Brewfile` | Separate Homebrew bundle, including casks, services, Go and Cargo entries |
+| `modules/ai.nix` | Whisper and OpenClaw activation |
+| `Brewfile` | macOS Homebrew bundle; Linux-compatible CLI equivalents are mapped into `droplet/home.nix` |
 | `bootstrap.sh` | Machine bootstrap and activation |
 | `scripts/verify.sh` | Installed-environment smoke checks |
 
 `nvim/default.nix` is a legacy stub. `vm/flake.nix` declares an `x86_64-linux` profile but imports the macOS-specific `home.nix`; it is not a ready-to-use Linux configuration.
+
+Droplet development ended on 2026-10-11. Its profile remains a separate flake and deliberately avoids importing macOS-specific modules. The application command below is retained for reference and applies only to the Droplet:
+
+```bash
+home-manager switch -b hm-backup --flake ~/.config/home-manager/droplet#codex@codex-vast-flint-fae5
+```
+
+The profiles target `codex` at `/home/codex` and `root` at `/root`; account creation and sudo privileges are managed separately. The `hm-backup` suffix preserves existing dotfiles that collide with managed files, provided the backup destination does not already exist.
+
+The Droplet profile converts Brewfile CLI tools to Nix packages where available; `mactex-no-gui` maps to `texliveSmall`. Homebrew taps and GUI apps remain macOS-only. Other exclusions: `cocoapods` and `cargo-lipo` are Darwin-specific; `ruby-build`, `container-use`, `diskdiet-mcp`, and several Cargo entries have no package in the locked Nixpkgs (`beaker`, `cargo-run-script`, `cbindgen`, `cosmwasm-check`, `genson-rs`, `imessage-exporter`, `ralph-cli`, `uniffi_bindgen`). Cargo supplies `cargo tree` directly. PostgreSQL is installed as software only; Home Manager does not enable its system service. `1password-cli`, `ngrok`, and `trunk-io` are the only allowed unfree packages.
 
 ## Included tooling
 
@@ -29,9 +40,9 @@ Codex-first workstation configuration for macOS on Apple Silicon (`aarch64-darwi
 - **Editor:** Neovim with Nix-managed plugins, Treesitter, Telescope, Neo-tree, Gitsigns, completion, LSP, format-on-save, and linting. Active configuration: `modules/editor.nix`.
 - **Media/documents:** FFmpeg, yt-dlp, whisper.cpp, Poppler, OCRmyPDF, Pandoc, Tika (`tika-app`), and ExifTool.
 - **Security:** Trivy, Gitleaks, SOPS, ShellCheck, Hadolint, Statix, and Deadnix.
-- **Agents/search:** Codex CLI, Hermes, `search`, `xurl`, a bundled Codex review skill, and helpers described below. Authentication remains separate.
+- **Agents/search:** Hermes, `search`, `xurl`, and helpers described below. Authentication remains separate.
 
-Useful shell shortcuts: `hms` applies this profile; `c` launches Codex; `v` launches Neovim. Bare `ls` uses `lla`; `ls` with arguments uses `/bin/ls`. `lraw` always uses `/bin/ls`.
+Useful shell shortcuts: `hms` applies this profile; `v` launches Neovim. Bare `ls` uses `lla`; `ls` with arguments uses `/bin/ls`. `lraw` always uses `/bin/ls`.
 
 ## Setup
 
@@ -82,20 +93,15 @@ To update flake inputs, run `nix flake update`, review `git diff -- flake.lock`,
 
 If activation reports an existing-file conflict, inspect that file first. `home-manager switch -b hm-backup --flake .#amoselmaliah` can preserve conflicting files under a backup suffix. Sourcing `.zshrc` alone does not apply Nix changes.
 
-`./scripts/verify.sh` checks command availability, repository paths, skill variables, the managed Codex binary and PATH selection, and headless Neovim startup. Optional tools produce warnings; required failures produce a nonzero exit. It does not verify service health, authentication, transcription accuracy, or every installed tool.
+`./scripts/verify.sh` checks command availability, repository paths, and headless Neovim startup. Optional tools produce warnings; required failures produce a nonzero exit. It does not verify service health, authentication, transcription accuracy, or every installed tool.
 
-## Codex and local helpers
+Install Codex independently using its [official installer](https://chatgpt.com/codex/install.sh):
 
-Codex CLI **0.157.0** is installed from the hash-pinned complete upstream Apple Silicon package, including its companion resources. Update the version and release hash together in `modules/packages.nix`; the Nixpkgs pin is independent. After switching, start a fresh shell. Verification rejects a selected Codex binary that differs from `~/.nix-profile/bin/codex`.
+```bash
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+```
 
-Home Manager installs the bundled `home-manager-review` skill into `~/.codex/skills`. `skill-audit [--format text|json]` depends on external local sources:
-
-- `/Users/amoselmaliah/dev/scripts/skills` (including the skill-manager Python script)
-- `/Users/amoselmaliah/dev/scripts/persona/personas/matt-pocock/skills`
-
-Those libraries are not included or installed by this repo. The `chatgpt-export-workspaces` wrapper is added only when its external script exists at evaluation time.
-
-`mlx-codex` provides `run`, `serve`, `stop`, and `logs` commands. It expects an existing `~/.venv-vllm-metal/bin/vllm-mlx`; this repo does not create that environment. The helper defaults to `mlx-community/gemma-4-31b-it-4bit` and loopback port 8000. Overrides: `MLX_PORT`, `MLX_MAX_TOKENS`.
+The `chatgpt-export-workspaces` wrapper is added only when its external script exists at evaluation time.
 
 ## Transcription and secret scans
 
@@ -123,7 +129,7 @@ Lower-level helpers: `whisper-convert <input> <output.wav>`, `whisper-fast <16kH
 - Activation installs an **unpinned** `clawhub` npm package into `~/.npm-global` when its executable is missing. This requires network access and falls outside `flake.lock`.
 - `bootstrap.sh` uses live Nix/Homebrew installers, including Homebrew's GitHub `HEAD` script, and an unlocked Home Manager runner. The manual build above uses the repo's locked Home Manager input.
 - `Brewfile` versions are not pinned and overlap some Nix tools. Homebrew bundle changes are separate from `home-manager switch`.
-- External skill libraries, the optional export script, local MLX environment/models, and independently installed SDKs are not reproduced by the Nix lock file.
+- The optional export script and independently installed SDKs are not reproduced by the Nix lock file.
 
 
 ### Global Codex hooks
@@ -132,7 +138,7 @@ Definitions: [`config/codex-hooks.toml`](config/codex-hooks.toml). Deployment au
 `~/dev/scripts/skills/skill-manager/scripts/skill_manager.py hooks`.
 Run `hooks plan`, `hooks apply --execute`, then `hooks validate`. Home Manager
 provides workstation tooling; it does not write runtime `~/.codex/hooks.json`.
-The manifest declares Python, Atuin and Gitleaks by executable name;
+The manifest declares Python and Atuin by executable name;
 no new package or Home Manager activation is required. See skill-manager's
 `references/hooks.md` for schema, rollback, ownership and trust review.
 

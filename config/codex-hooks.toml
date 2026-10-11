@@ -1,9 +1,5 @@
 version = 2
-tools = ["python3", "atuin", "gitleaks"]
-
-[bundles.gitleaks.files."gitleaks_hook.py"]
-path = "hook-assets/gitleaks/gitleaks_hook.py"
-sha256 = "91e6df07a0443c138ce214d70edc698ad76d40cafcafdd4d90946370c21a828b"
+tools = ["python3", "atuin"]
 
 [bundles.work-journal.files."journal.py"]
 path = "hook-assets/work-journal/journal.py"
@@ -30,16 +26,6 @@ argv = ["${TOOL_atuin}", "hook", "codex"]
 event = "PreToolUse"
 matcher = "^Bash$"
 argv = ["${TOOL_atuin}", "hook", "codex"]
-
-[[owners]]
-id = "gitleaks"
-
-[[owners.entries]]
-event = "SessionStart"
-matcher = "startup|resume"
-argv = ["${TOOL_python3}", "${BUNDLE_gitleaks}/gitleaks_hook.py", "--hook", "${TOOL_gitleaks}"]
-timeout = 65
-statusMessage = "Skill Manager: Gitleaks startup scan"
 
 [[owners]]
 id = "work-journal"

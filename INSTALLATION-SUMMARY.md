@@ -29,7 +29,6 @@ nix run github:nix-community/home-manager -- switch --flake .#amoselmaliah
 - language servers and formatters for common backend and infra work
 - media/document tools: `whisper-transcribe`, `ffmpeg`, `pandoc`, `poppler`, `ocrmypdf`, `tika`, `exiftool`
 - security tools: `trivy`, `gitleaks`, `scan-secrets`, `shellcheck`
-- Codex repo guidance and the `home-manager-review` skill
 
 ## Daily commands
 

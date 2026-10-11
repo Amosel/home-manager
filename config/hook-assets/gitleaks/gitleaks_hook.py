@@ -8,8 +8,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 MARKER = "Skill Manager: Gitleaks startup scan"
+EXCLUDED_ROOT_DIRS = {
+    ".git", ".astro", ".cache", ".playwright-mcp", ".vercel",
+    ".wrangler", "dist", "node_modules", "output",
+}
 
 
 def codex_home():
@@ -92,23 +97,42 @@ def scan(cwd, binary):
     """Return only bounded finding metadata, never scanner logs or secret values."""
     if not cwd.is_dir():
         raise ValueError("Session directory unavailable")
+    # Gitleaks' directory mode does not honor .gitignore. Scan each root entry
+    # separately so known build, dependency, and media caches can be skipped.
+    # Keep leading-dash filenames from being interpreted as scanner options.
+    targets = [f"./{entry.name}" for entry in sorted(cwd.iterdir())
+               if not (entry.is_dir() and entry.name in EXCLUDED_ROOT_DIRS)]
     with tempfile.TemporaryDirectory(prefix="gitleaks-hook-") as temp:
-        report = Path(temp) / "report.json"
-        completed = subprocess.run([
-            binary, "dir", str(cwd), "--redact=100", "--no-banner", "--no-color",
-            "--exit-code", "10", "--timeout", "55", "--report-format", "json",
-            "--report-path", str(report),
-        ], cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
-        if completed.returncode not in (0, 10):
-            raise ValueError(f"Scanner failed (exit {completed.returncode}); scan unverified")
-        findings = json.loads(report.read_text())
-        if not isinstance(findings, list):
-            raise ValueError("Invalid Gitleaks report")
-        if completed.returncode == 10 and not findings:
-            raise ValueError("Gitleaks reported findings without details")
-        return {"status": "findings" if findings else "clean", "count": len(findings),
+        deadline = time.monotonic() + 55
+        found = []
+        finding_count = 0
+        for index, target in enumerate(targets):
+            remaining = deadline - time.monotonic()
+            if remaining <= 1:
+                raise subprocess.TimeoutExpired(binary, 55)
+            report = Path(temp) / f"report-{index}.json"
+            scan_seconds = max(1, int(remaining) - 1)
+            command = [binary, "dir", target, "--redact=100", "--no-banner", "--no-color",
+                       "--exit-code", "10", "--timeout", str(scan_seconds),
+                       "--report-format", "json", "--report-path", str(report)]
+            if (not os.environ.get("GITLEAKS_CONFIG") and
+                    not os.environ.get("GITLEAKS_CONFIG_TOML") and
+                    (cwd / ".gitleaks.toml").is_file()):
+                command.extend(["--config", str(cwd / ".gitleaks.toml")])
+            completed = subprocess.run(command, cwd=cwd, stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL, timeout=remaining)
+            if completed.returncode not in (0, 10):
+                raise ValueError(f"Scanner failed (exit {completed.returncode}); scan unverified")
+            findings = json.loads(report.read_text())
+            if not isinstance(findings, list):
+                raise ValueError("Invalid Gitleaks report")
+            if completed.returncode == 10 and not findings:
+                raise ValueError("Gitleaks reported findings without details")
+            finding_count += len(findings)
+            found.extend(findings[:max(0, 20 - len(found))])
+        return {"status": "findings" if finding_count else "clean", "count": finding_count,
                 "findings": [{k: item.get(k) for k in ("File", "StartLine", "RuleID")}
-                             for item in findings[:20]]}
+                             for item in found]}
 
 
 def hook_main(binary):
