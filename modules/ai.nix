@@ -13,6 +13,24 @@ let
     url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin";
     hash = "sha256-H8cPd0046xaZk6w5Huo1fvR8iHV+9y7llDh5t+jivGk=";
   };
+  gtwPluginSource = pkgs.fetchFromGitHub {
+    owner = "cnlangzi";
+    repo = "gtw";
+    rev = "f8ec4bb01b1faf965adf1035108d9729ca909aff";
+    hash = "sha256-goZnpVanS9C3JJGnRFEYz7ocpwJMq3B3tFsXZ0Qk1Hg=";
+  };
+  gtwPlugin = pkgs.buildNpmPackage {
+    pname = "openclaw-gtw";
+    version = "1.0.0-f8ec4bb";
+    src = gtwPluginSource;
+    npmDepsHash = "sha256-tQDavlq0FrGmDMleEry4nn54twC0xvoe+Nj+y9/EjdA=";
+    dontNpmBuild = true;
+    buildPhase = ''
+      runHook preBuild
+      runHook postBuild
+    '';
+    doCheck = false;
+  };
   whisperThreadCommand = "/usr/sbin/sysctl -n hw.perfcpu 2>/dev/null || /usr/sbin/sysctl -n hw.ncpu 2>/dev/null || echo 4";
   whisperConvert = pkgs.writeShellScriptBin "whisper-convert" ''
     set -euo pipefail
@@ -405,6 +423,17 @@ in
     if [ ! -x "$clawhub_bin" ]; then
       echo "Installing clawhub into $npm_prefix ..."
       ${pkgs.nodejs}/bin/npm install --global --prefix "$npm_prefix" clawhub
+    fi
+  '';
+
+  home.activation.openclawGtw = lib.hm.dag.entryAfter [ "openclawClawhub" ] ''
+    openclaw_bin="$HOME/.npm-global/bin/openclaw"
+    plugin_dir="${gtwPlugin}/lib/node_modules/gtw"
+
+    if [ -x "$openclaw_bin" ]; then
+      "$openclaw_bin" plugins install "$plugin_dir" -l --dangerously-force-unsafe-install
+    else
+      echo "Skipping gtw OpenClaw plugin install; missing $openclaw_bin"
     fi
   '';
 }
