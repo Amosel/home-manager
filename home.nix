@@ -1,12 +1,12 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./modules/packages.nix
     ./modules/shell.nix
     ./modules/git.nix
     ./modules/editor.nix
     ./modules/ai.nix
+    ./modules/mlx.nix
+    ./modules/whisper.nix
   ];
 
   home.username = "amoselmaliah";
