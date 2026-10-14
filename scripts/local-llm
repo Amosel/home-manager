@@ -1,0 +1,342 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+config_dir="${LOCAL_LLM_CONFIG_DIR:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../config/local-llm" && pwd)}"
+# shellcheck source=config/local-llm/settings.sh
+source "$config_dir/settings.sh"
+mlx="$LLM_VENV/bin/vllm-mlx"
+
+die() { printf '%s\n' "$*" >&2; exit 1; }
+need() { command -v "$1" >/dev/null 2>&1 || die "Missing command: $1"; }
+need_mlx() { [[ -x "$mlx" ]] || die "Run local-llm setup mlx first."; }
+
+usage() {
+    cat <<'EOF'
+Usage: local-llm [COMMAND] [ARGS]
+  [choose]                 Open an arrow-key model picker (default)
+                            Enter selects; Esc cancels. Switching stops this runtime's server.
+  setup [all|mlx|ollama]    Install/update runtimes (default: all); no model downloads
+  update [all|mlx|ollama]   Same as setup, resolving current upstream versions
+  models | list            Show MLX/Ollama inventory, sizes, and current use
+  download [ROLE|all]      Download weights explicitly (default: coder)
+  serve [ROLE] [--continuous-batching]
+                          Foreground MLX server; ROLE=coder|general|large
+  configure-hermes [ROLE]  Back up config, then select the local model in Hermes
+  cleanup-ollama [--apply] Preview retirement; --apply deletes only six named models
+  status                  Show installed runtime metadata and local API availability
+
+Stop the server with Ctrl-C before changing roles. Ollama embeddings remain separate.
+Model deletion requires cleanup-ollama --apply. No background service or activation.
+EOF
+}
+
+choose_model() {
+    need fzf
+    local choices=() role model repo snapshot size active="" selected chosen candidate manifest
+    local response
+    response="$(curl --fail --silent --max-time 3 "http://127.0.0.1:$LLM_PORT/v1/models" 2>/dev/null || true)"
+    [[ -z "$response" ]] || active="$(printf '%s' "$response" | jq -r '[.data[].id] | join(", ")' 2>/dev/null || true)"
+    for role in coder general large; do
+        select_role "$role"
+        repo="${model#mlx-community/}"
+        snapshot="${HF_HOME:-$HOME/.cache/huggingface}/hub/models--mlx-community--$repo/snapshots"
+        size="not downloaded"
+        for manifest in "$snapshot"/*/vllm_mlx_model_manifest.json; do
+            if [[ -f "$manifest" ]]; then
+                size="$(du -shL "$(dirname "$manifest")" 2>/dev/null | awk 'NR == 1 {print $1}')"
+                size="${size:-cached}"
+                break
+            fi
+        done
+        selected=""
+        [[ ", $active, " != *", $model,"* ]] || selected=" · serving"
+        choices+=("$role"$'\t'"$model"$'\t'"$size$selected")
+    done
+    chosen="$(printf '%s\n' "${choices[@]}" | fzf \
+        --delimiter=$'\t' --with-nth=1,2,3 --nth=1,2 \
+        --height=45% --layout=reverse --border \
+        --prompt='Choose model › ' \
+        --header='↑/↓ choose · Enter select · switching stops the current local-llm server · Esc cancel') " || return 0
+    [[ -n "$chosen" ]] || return 0
+    role="${chosen%%$'\t'*}"
+    select_role "$role"
+    repo="${model#mlx-community/}"
+    snapshot="${HF_HOME:-$HOME/.cache/huggingface}/hub/models--mlx-community--$repo/snapshots"
+    for candidate in "$snapshot"/*/vllm_mlx_model_manifest.json; do
+        [[ -f "$candidate" ]] && break
+        candidate=""
+    done
+    if [[ -z "$candidate" ]]; then
+        die "Model weights are missing. Run: local-llm download $role"
+    fi
+    if [[ ", $active, " == *", $model,"* ]]; then
+        bash "$0" configure-hermes "$role"
+        exec hermes chat
+    fi
+    if [[ -n "$active" ]]; then
+        stop_local_server "$active"
+    fi
+    bash "$0" configure-hermes "$role"
+    exec bash "$0" serve "$role"
+}
+
+stop_local_server() {
+    local active="$1" pid process
+    need lsof
+    need ps
+    local pids
+    pids="$(lsof -t -nP -iTCP:"$LLM_PORT" -sTCP:LISTEN | sort -u)"
+    [[ -n "$pids" ]] || die "Server at port $LLM_PORT disappeared; run local-llm choose again."
+    [[ "$pids" != *$'\n'* ]] || die "Multiple processes listen on port $LLM_PORT; stop them manually."
+    pid="$pids"
+    process="$(ps -p "$pid" -o command= 2>/dev/null || true)"
+    if [[ "$process" != *"$mlx serve $active"* || "$process" != *"--host 127.0.0.1"* || "$process" != *"--port $LLM_PORT"* ]]; then
+        die "Port $LLM_PORT is held by a server this command cannot safely stop. Stop it yourself; Hermes config was not changed."
+    fi
+    printf 'Stopping current local-llm model (%s, PID %s)…\n' "$active" "$pid"
+    kill -INT "$pid" || die "Could not stop model server PID $pid."
+    for _ in {1..30}; do
+        if ! lsof -nP -iTCP:"$LLM_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+    die "Server did not release port $LLM_PORT. Hermes config was not changed."
+}
+
+select_role() {
+    case "$1" in
+        coder) model="$CODER_MODEL"; parser=qwen3_coder; reasoning= ;;
+        general) model="$GENERAL_MODEL"; parser=harmony; reasoning=gpt_oss ;;
+        large) model="$LARGE_MODEL"; parser=qwen3.5; reasoning=qwen3 ;;
+        *) die "Unknown serving role: $1 (use coder, general, or large)" ;;
+    esac
+}
+
+setup_mlx() {
+    need uv
+    need git
+    [[ "$(uname -s)" == Darwin && "$(uname -m)" == arm64 ]] || die "MLX requires Apple Silicon macOS."
+    if [[ ! -d "$LLM_VENV" ]]; then
+        uv venv "$LLM_VENV" --python "$LLM_PYTHON"
+    fi
+    [[ -x "$LLM_VENV/bin/python" ]] || die "Invalid venv: $LLM_VENV (left untouched)"
+    # Non-editable install removes the runtime dependency on ~/vllm-mlx.
+    uv pip install --python "$LLM_VENV/bin/python" --upgrade \
+        --refresh-package vllm-mlx --reinstall-package vllm-mlx \
+        -r "$config_dir/requirements.txt"
+    "$mlx" --help >/dev/null
+}
+
+setup_ollama() {
+    need brew
+    # Adopt the pre-existing application only if Homebrew considers it identical.
+    # A mismatch fails safely: no --force, app removal, or model cleanup.
+    if ! brew list --cask ollama-app >/dev/null 2>&1; then
+        brew install --cask --adopt ollama-app
+    fi
+    brew bundle install --upgrade --file="$config_dir/Brewfile"
+}
+
+download_role() {
+    if [[ "$1" == embeddings ]]; then
+        need ollama
+        ollama pull "$EMBED_MODEL"
+    else
+        select_role "$1"
+        need_mlx
+        local args=()
+        [[ "$1" != large ]] || args+=(--mllm)
+        "$mlx" model acquire "$model" ${args[@]+"${args[@]}"}
+    fi
+}
+
+cleanup_ollama() {
+    [[ $# -eq 0 || ( $# -eq 1 && "$1" == --apply ) ]] || die "Usage: local-llm cleanup-ollama [--apply]"
+    need ollama
+    local inventory target present
+    inventory="$(ollama list)" || die "Cannot read Ollama inventory; no models removed."
+    local targets=(
+        oamazonasgabriel/qwen2.5-coder.1.5b-mlx:f16-8gbGPU
+        gemma4:e4b
+        gemma4:latest
+        qwen3.5:35b-a3b-coding-nvfp4
+        qwen3-coder:30b
+        gpt-oss:20b
+    )
+    for target in "${targets[@]}"; do
+        present=$(printf '%s\n' "$inventory" | awk -v target="$target" 'NR > 1 && $1 == target {print $1}')
+        if [[ -z "$present" ]]; then
+            printf 'Already absent: %s\n' "$target"
+        elif [[ "${1:-}" == --apply ]]; then
+            ollama rm "$target" || die "Removal failed: $target; stopping."
+        else
+            printf 'Would remove: %s\n' "$target"
+        fi
+    done
+    printf 'Preserved: nomic-embed-text:latest, nimble:latest, and all unlisted models.\n'
+}
+
+list_models() {
+    local active="unavailable" configured="unavailable" endpoint="http://127.0.0.1:$LLM_PORT/v1/models"
+    local response="" role model repo cache_root cache_size configured_tag active_tag manifest candidate inventory
+    if command -v curl >/dev/null 2>&1; then
+        response="$(curl --fail --silent --max-time 3 "$endpoint" 2>/dev/null || true)"
+        [[ -z "$response" ]] || active="$(printf '%s' "$response" | jq -r '[.data[].id] | join(", ")' 2>/dev/null || printf 'unknown')"
+    fi
+    if command -v hermes >/dev/null 2>&1; then
+        configured="$(python3 - "${HERMES_HOME:-$HOME/.hermes}/config.yaml" <<'PYCONFIG'
+import sys
+try:
+    import yaml
+    with open(sys.argv[1]) as f:
+        print((yaml.safe_load(f) or {}).get("model", {}).get("default", "unset"))
+except FileNotFoundError:
+    print("not configured")
+except Exception:
+    print("unreadable")
+PYCONFIG
+        )"
+    fi
+    printf 'LOCAL MODEL INVENTORY\n'
+    printf 'MLX API: %s\nHermes model: %s\n' "$active" "$configured"
+    printf '\n%-7s %-48s %-7s %-10s %s\n' SOURCE MODEL SIZE ROLE STATUS
+    printf '%s\n' '────────────────────────────────────────────────────────────────────────────────────────────────────────────'
+    for role in coder general large; do
+        select_role "$role"
+        repo="${model#mlx-community/}"
+        cache_root="${HF_HOME:-$HOME/.cache/huggingface}/hub/models--mlx-community--$repo/snapshots"
+        manifest=""
+        for candidate in "$cache_root"/*/vllm_mlx_model_manifest.json; do
+            [[ -f "$candidate" ]] && { manifest="$candidate"; break; }
+        done
+        if [[ -n "$manifest" ]]; then
+            cache_size="$(du -shL "$(dirname "$manifest")" 2>/dev/null | awk 'NR == 1 {print $1}')"
+            cache_size="${cache_size:-unknown}"
+            inventory=ready
+        else
+            cache_size="—"
+            inventory=not-downloaded
+        fi
+        configured_tag=""
+        [[ "$configured" != "$model" ]] || configured_tag=Hermes
+        active_tag=""
+        [[ ", $active, " != *", $model,"* ]] || active_tag=serving
+        [[ -z "$active_tag" ]] || inventory="$active_tag"
+        [[ -z "$configured_tag" ]] || inventory="${inventory:+$inventory, }$configured_tag"
+        printf '%-7s %-48s %-7s %-10s %s\n' MLX "$model" "$cache_size" "$role" "$inventory"
+    done
+    if command -v ollama >/dev/null 2>&1; then
+        inventory="$(ollama list 2>/dev/null || true)"
+        if [[ -n "$inventory" ]]; then
+            printf '%s\n' "$inventory" | awk 'NR > 1 {role=($1 == "nomic-embed-text:latest" ? "embeddings" : "other"); status=(role == "embeddings" ? "indexing" : "installed"); printf "%-7s %-48s %-7s %-10s %s\n", "Ollama", $1, $3 " " $4, role, status}'
+        else
+            printf '%-7s %s\n' Ollama 'unavailable (is the Ollama app running?)'
+        fi
+    else
+        printf '%-7s %s\n' Ollama 'not installed'
+    fi
+    printf '\nUSE A CHAT MODEL\n'
+    printf '  Choose: local-llm   # arrows select role; Enter starts or switches\n'
+    printf '  Chat:   picker opens Hermes for the active role; otherwise run hermes chat in another terminal\n'
+    printf '  Ollama embedding models serve indexing clients; they are not Hermes chat roles.\n'
+}
+
+command_name="${1:-choose}"
+[[ $# -eq 0 ]] || shift
+case "$command_name" in
+    choose) [[ $# -eq 0 ]] || die "Usage: local-llm choose"; choose_model ;;
+    help|-h|--help) usage ;;
+    setup|update)
+        [[ $# -le 1 ]] || die "Usage: local-llm $command_name [all|mlx|ollama]"
+        case "${1:-all}" in
+            all) setup_mlx; setup_ollama ;;
+            mlx) setup_mlx ;;
+            ollama) setup_ollama ;;
+            *) die "Expected all, mlx, or ollama" ;;
+        esac
+        ;;
+    cleanup-ollama) cleanup_ollama "$@" ;;
+    models|list)
+        [[ $# -eq 0 ]] || die "Usage: local-llm models"
+        list_models
+        ;;
+    download)
+        [[ $# -le 1 ]] || die "Usage: local-llm download [coder|general|large|embeddings|all]"
+        if [[ "${1:-coder}" == all ]]; then
+            for role in coder general large embeddings; do download_role "$role"; done
+        else
+            download_role "${1:-coder}"
+        fi
+        ;;
+    serve)
+        role="${1:-coder}"
+        [[ $# -eq 0 ]] || shift
+        select_role "$role"
+        need_mlx
+        need lsof
+        need caffeinate
+        args=()
+        sequences=1
+        if [[ $# -eq 1 && "$1" == --continuous-batching ]]; then
+            args+=(--continuous-batching)
+            sequences="$LLM_BATCH_SEQUENCES"
+        elif [[ $# -ne 0 ]]; then
+            die "Usage: local-llm serve [coder|general|large] [--continuous-batching]"
+        fi
+        if lsof -nP -iTCP:"$LLM_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+            die "Port $LLM_PORT is occupied. Stop the existing server first."
+        fi
+        [[ -z "$reasoning" ]] || args+=(--reasoning-parser "$reasoning")
+        [[ "$role" != large ]] || args+=(--mllm)
+        printf 'Serving %s at http://127.0.0.1:%s/v1; Ctrl-C to stop.\n' "$model" "$LLM_PORT"
+        # Cached weights only: download is a separate, explicit operation.
+        export HF_HUB_OFFLINE=1
+        launch=("$mlx")
+        if [[ "$role" == general ]]; then
+            compat="${LOCAL_LLM_GPT_OSS_COMPAT:-$(dirname -- "${BASH_SOURCE[0]}")/local-llm-gpt-oss-compat.py}"
+            [[ -f "$compat" ]] || die "Missing GPT-OSS compatibility adapter: $compat"
+            launch=("$LLM_VENV/bin/python" "$compat")
+        fi
+        exec caffeinate -i "${launch[@]}" serve "$model" \
+            --host 127.0.0.1 --port "$LLM_PORT" \
+            --enable-auto-tool-choice --tool-call-parser "$parser" \
+            --max-num-seqs "$sequences" --cache-memory-mb "$LLM_CACHE_MB" \
+            --max-tokens "$LLM_OUTPUT" --max-request-tokens "$LLM_OUTPUT" \
+            ${args[@]+"${args[@]}"}
+        ;;
+    configure-hermes)
+        [[ $# -le 1 ]] || die "Usage: local-llm configure-hermes [coder|general|large]"
+        select_role "${1:-coder}"
+        need hermes
+        hermes_config="${HERMES_HOME:-$HOME/.hermes}/config.yaml"
+        if [[ -f "$hermes_config" ]]; then
+            backup="$(mktemp "$hermes_config.before-local-llm.XXXXXX")"
+            cp -p "$hermes_config" "$backup"
+            printf 'Hermes config backup: %s\n' "$backup"
+        fi
+        hermes config set model.provider custom
+        hermes config set model.base_url "http://127.0.0.1:$LLM_PORT/v1"
+        hermes config set model.api_key not-needed
+        hermes config set model.default "$model"
+        hermes config set model.context_length "$LLM_CONTEXT"
+        hermes config set model.max_tokens "$LLM_OUTPUT"
+        ;;
+    status)
+        [[ $# -eq 0 ]] || die "Usage: local-llm status"
+        printf 'MLX environment: %s\n' "$LLM_VENV"
+        if [[ -x "$LLM_VENV/bin/python" ]]; then
+            "$LLM_VENV/bin/python" -c 'from importlib.metadata import distribution; d = distribution("vllm-mlx"); print("vllm-mlx:", d.version); print(d.read_text("direct_url.json") or "No source metadata")'
+        else
+            printf 'MLX not installed.\n'
+        fi
+        command -v ollama || true
+        need curl
+        for url in "http://127.0.0.1:$LLM_PORT/v1/models" http://127.0.0.1:11434/api/ps; do
+            printf '\n%s\n' "$url"
+            curl --fail --silent --show-error --max-time 3 "$url" || printf 'API unavailable.\n'
+            printf '\n'
+        done
+        ;;
+    *) usage >&2; exit 2 ;;
+esac

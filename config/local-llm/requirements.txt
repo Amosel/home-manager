@@ -1,0 +1,4 @@
+# Intentionally follows upstream's default branch; updated only on explicit setup/update.
+vllm-mlx @ git+https://github.com/waybarrios/vllm-mlx.git
+# GPT-OSS Harmony format support, shared by both local MLX workflows.
+openai-harmony>=0.0.8

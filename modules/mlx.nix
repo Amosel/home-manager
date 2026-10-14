@@ -15,7 +15,6 @@
         PID_FILE="''${MLX_PID_FILE:-/tmp/mlx-server.pid}"
         DEFAULT_MODEL="''${MLX_CODEX_MODEL:-mlx-community/Qwen3.5-9B-MLX-4bit}"
         STRONG_MODEL="mlx-community/Qwen3.6-27B-4bit"
-        VLLM_MLX_VERSION="0.5.0"
         PYTHON="${lib.getExe pkgs.python313}"
         UV="${lib.getExe pkgs.uv}"
         CURL="${lib.getExe pkgs.curl}"
@@ -23,9 +22,9 @@
         setup_backend() {
           echo "Creating vllm-mlx environment at $VENV"
       "$UV" venv --allow-existing --python "$PYTHON" "$VENV"
-          "$UV" pip install --python "$VENV/bin/python" \
-            "vllm-mlx==$VLLM_MLX_VERSION" \
-            "openai-harmony>=0.0.8"
+          "$UV" pip install --python "$VENV/bin/python" --upgrade \
+            --refresh-package vllm-mlx --reinstall-package vllm-mlx \
+            -r "${../config/local-llm/requirements.txt}"
       "$UV" pip show --python "$VENV/bin/python" vllm-mlx mlx mlx-lm \
         | awk '/^(Name|Version):/ {print $0}'
         }
@@ -148,7 +147,7 @@
     Usage: mlx-codex <command> [model]
 
     Commands:
-      setup          Create or refresh the pinned vllm-mlx backend
+      setup          Create or refresh the unpinned upstream vllm-mlx backend
       doctor         Show local MLX backend status
       run   [model]  Start server + launch Codex
       serve [model]  Start server only

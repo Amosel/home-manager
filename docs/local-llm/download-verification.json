@@ -1,0 +1,56 @@
+{
+  "checked_at": "2026-10-14T19:26:32.981850+00:00",
+  "models": [
+    {
+      "revision": "6e302ea604ad9ab206367e2c501d1571023e7b6d",
+      "checked_count": 15,
+      "mismatches": [],
+      "missing_paths": [
+        ".gitattributes",
+        "README.md"
+      ],
+      "extra_paths": [
+        "vllm_mlx_model_manifest.json"
+      ],
+      "verified_path": "/Users/amoselmaliah/.cache/huggingface/hub/models--mlx-community--Qwen3-Coder-30B-A3B-Instruct-4bit/snapshots/6e302ea604ad9ab206367e2c501d1571023e7b6d",
+      "role": "coder",
+      "weight_files": 4,
+      "weight_bytes": 17181071994,
+      "incomplete_files": []
+    },
+    {
+      "revision": "01ca7c698c0108e784c891b2e5916b50ca10c5a9",
+      "checked_count": 11,
+      "mismatches": [],
+      "missing_paths": [
+        ".gitattributes",
+        "README.md"
+      ],
+      "extra_paths": [
+        "vllm_mlx_model_manifest.json"
+      ],
+      "verified_path": "/Users/amoselmaliah/.cache/huggingface/hub/models--mlx-community--gpt-oss-20b-OptiQ-4bit/snapshots/01ca7c698c0108e784c891b2e5916b50ca10c5a9",
+      "role": "general",
+      "weight_files": 3,
+      "weight_bytes": 11623702006,
+      "incomplete_files": []
+    },
+    {
+      "revision": "1e20fd8d42056f870933bf98ca6211024744f7ec",
+      "checked_count": 14,
+      "mismatches": [],
+      "missing_paths": [
+        ".gitattributes",
+        "README.md"
+      ],
+      "extra_paths": [
+        "vllm_mlx_model_manifest.json"
+      ],
+      "verified_path": "/Users/amoselmaliah/.cache/huggingface/hub/models--mlx-community--Qwen3.5-35B-A3B-4bit/snapshots/1e20fd8d42056f870933bf98ca6211024744f7ec",
+      "role": "large",
+      "weight_files": 4,
+      "weight_bytes": 20391679439,
+      "incomplete_files": []
+    }
+  ]
+}

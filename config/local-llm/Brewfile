@@ -1,0 +1,5 @@
+# Required by the arrow-key model picker when running outside Home Manager.
+brew "fzf"
+
+# Separate from the workstation bundle; no service is started by this bundle.
+cask "ollama-app", greedy: true

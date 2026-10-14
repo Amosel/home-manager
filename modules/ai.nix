@@ -174,7 +174,6 @@ in
   };
 
   home.file = {
-    ".codex/skills/home-manager-review".source = ../codex-skills/home-manager-review;
     ".local/share/whisper-models/ggml-large-v3-turbo.bin".source = whisperModel;
   };
 
@@ -208,6 +207,12 @@ in
       ${pkgs.jq}/bin/jq -r '.summary, (.sections[] | "## " + .title, (.lines[]?))' "$tmpdir/primary-audit.json"
       echo "== persona source =="; echo "$persona_source"
       ${pkgs.jq}/bin/jq -r '.summary, (.sections[] | "## " + .title, (.lines[]?))' "$tmpdir/persona-audit.json"
+    '')
+    # The command is declarative; runtime updates/downloads remain explicit and unpinned.
+    (pkgs.writeShellScriptBin "local-llm" ''
+      export LOCAL_LLM_CONFIG_DIR=${../config/local-llm}
+      export LOCAL_LLM_GPT_OSS_COMPAT=${../scripts/local-llm-gpt-oss-compat.py}
+      exec ${pkgs.bash}/bin/bash ${../scripts/local-llm} "$@"
     '')
     pkgs.whisper-cpp
     whisperConvert

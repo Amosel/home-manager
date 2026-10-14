@@ -16,7 +16,8 @@ Workstation configuration for macOS on Apple Silicon (`aarch64-darwin`). The mac
 | `modules/shell.nix` | Zsh/Bash, PATH, aliases, terminal tools, environment variables |
 | `modules/git.nix` | Git identity, Delta, Kaleidoscope commands, GitHub CLI |
 | `modules/editor.nix` | Neovim plugins, LSP, completion, formatting, linting |
-| `modules/ai.nix` | Whisper and OpenClaw activation |
+| `modules/ai.nix` | Whisper, OpenClaw activation, and the `local-llm` command |
+| `config/local-llm/` / `scripts/local-llm` | Unpinned, explicitly executed Ollama/MLX setup and model roles |
 | `Brewfile` | macOS Homebrew bundle; Linux-compatible CLI equivalents are mapped into `droplet/home.nix` |
 | `bootstrap.sh` | Machine bootstrap and activation |
 | `scripts/verify.sh` | Installed-environment smoke checks |
@@ -102,6 +103,99 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 ```
 
 The `chatgpt-export-workspaces` wrapper is added only when its external script exists at evaluation time.
+
+## Local models: explicit setup and updates
+
+For model selection, daily use, switching, Hermes commands, and troubleshooting,
+read the [local-model operating skill](docs/local-llm/SKILL.md).
+
+`scripts/local-llm` works directly from this checkout. Home Manager also installs
+`local-llm` on PATH after activation. Settings and model IDs live in
+[`config/local-llm/settings.sh`](config/local-llm/settings.sh); its sibling
+`requirements.txt` follows the vLLM-MLX default Git branch, and its `Brewfile`
+installs the arrow-key picker (`fzf`) and manages the Ollama macOS app. Home
+Manager already provides `fzf`; Brewfile also covers direct checkout use.
+Neither runtime is pinned by Nix. These are
+deliberately non-reproducible updates, performed only when requested:
+
+```bash
+cd ~/.config/home-manager
+local-llm                               # ↑/↓ choose a model; Enter starts it
+local-llm models                       # MLX + Ollama inventory, sizes, use
+./scripts/local-llm setup               # runtimes only; no weights or servers
+./scripts/local-llm download coder      # explicit large download
+./scripts/local-llm configure-hermes coder
+./scripts/local-llm serve coder         # foreground; Ctrl-C to stop
+
+# Later, with the server stopped:
+./scripts/local-llm update              # latest upstream code/dependencies and Ollama
+./scripts/local-llm download general
+./scripts/local-llm configure-hermes general
+./scripts/local-llm serve general
+```
+
+`setup mlx` / `update mlx` and `setup ollama` / `update ollama` operate independently.
+MLX reuses `~/.venvs/vllm-mlx` and replaces the editable install with a normal Git
+package installation. After successful setup, `~/vllm-mlx` is no longer a runtime
+dependency; the checkout is left intact. Python 3.12 is the default for new
+environments, configurable via `LLM_PYTHON`; existing environments are retained.
+Ollama setup attempts Homebrew's safe `--adopt` for an existing app. If the app
+differs from the current cask, adoption may fail; update it through Ollama and
+retry. No forced replacement or model deletion is performed.
+
+Models reuse the normal Hugging Face cache (`HF_HOME` is respected). `download`
+defaults to the coder alone; `download large`, `download embeddings`, and
+`download all` are opt-in. Embedding downloads require Ollama running. Existing
+Ollama models, including `nomic-embed-text:latest`, are untouched by setup/download. Downloaded
+weights occupy disk; loaded models consume memory. Stop any loaded large Ollama
+models before using MLX (`ollama ps`, then `ollama stop <model>`).
+
+Serving binds only `127.0.0.1:8000`, uses cached weights offline, enables the
+role's tool parser, and prevents idle system sleep while running. A port check
+rejects an already-running listener before loading weights; it is not a global
+GPU lock and cannot stop independently launched servers. The default is one
+sequence, 4,096 output tokens, and a 1 GiB prefix-cache budget. These are **not a
+total RAM cap**. `configure-hermes` backs up its config and sets the custom
+provider, endpoint, placeholder key, model, 65,536-token context, and output
+limit; other settings survive. The installed Hermes rejects contexts below
+64,000 tokens. This context is a Hermes setting, not a server-side input limit;
+longer conversations can increase memory use. Existing auxiliary providers,
+fallbacks, and compression settings remain configured separately.
+`serve coder --continuous-batching` opts into the batched engine with at most two
+sequences (`LLM_BATCH_SEQUENCES` in the manifest).
+
+Roles: `coder` = `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit`,
+`general` = `mlx-community/gpt-oss-20b-OptiQ-4bit`, and
+`large` = `mlx-community/Qwen3.5-35B-A3B-4bit`.
+Test each replacement before retiring its Ollama copy.
+
+The general role runs `scripts/local-llm-gpt-oss-compat.py`: a process-local
+compatibility adapter for upstream Harmony cleanup/streaming bugs. It preserves
+tool-call headers until parsing and separates reasoning from answer content.
+It probes upstream behavior at startup, skips working portions, and fails on
+unsupported parser contracts; installed package files are never modified.
+Coder/large roles do not load it. After runtime updates, rerun the focused tests
+with `~/.venvs/vllm-mlx/bin/python -m unittest discover -s tests -p
+"test_local_llm_gpt_oss_compat.py"` plus live generation/tool roundtrips.
+
+`local-llm cleanup-ollama` previews the six exact retirement names;
+`local-llm cleanup-ollama --apply` deletes them. Absent names are skipped;
+failures stop execution. Both preserve `nomic-embed-text:latest`, `nimble:latest`,
+and every unlisted model. No automatic startup/restart service is installed.
+
+The separate `mlx-codex` workflow retains its own `~/.venv-vllm-mlx` environment,
+model defaults, and continuous-batching behavior. Its `setup` resolves the same
+unpinned upstream source. Stop either workflow before starting the other on port
+8000; run only one large model at a time.
+
+`local-llm status` reports installation provenance and API availability. No
+generation or multi-turn tool-calling benchmark is implied. Upstream references:
+[MLX installation](https://vllm-mlx.is-a.dev/getting-started/installation/),
+[MLX serving](https://vllm-mlx.is-a.dev/getting-started/quickstart/), and
+[Hermes configuration](https://hermes-agent.nousresearch.com/docs/user-guide/configuration).
+
+`home-manager switch` installs the wrapper only: it does not update these
+runtimes, download weights, start services, or rewrite Hermes configuration.
 
 ## Transcription and secret scans
 
